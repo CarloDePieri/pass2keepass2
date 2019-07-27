@@ -29,14 +29,14 @@ class PassReader:
         return keys
 
     def parse_key(self, key):
-        """TODO docs"""
+        """Return a parsed PassKey."""
         return PassKey(reader=self, key=key)
 
 
 class PassKey:
     """A simple pass key in-memory representation"""
 
-    groups: str
+    groups: List[str]
     title: str
     password: str
     url: str
@@ -82,8 +82,8 @@ class PassKey:
     @staticmethod
     def parse_key_line(key_line: str) -> Tuple[str, str]:
         """Parse a line in the format 'key: value'."""
-        stuff = key_line.split(":", 1)
-        return stuff[0].strip(), stuff[1].strip()
+        data = key_line.split(":", 1)
+        return data[0].strip(), data[1].strip()
 
     def parse_key_string(self, key_string: str) -> None:
         """Parse a key and extract all useful data."""
