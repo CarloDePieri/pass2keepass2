@@ -17,5 +17,9 @@ class PassReader:
             self.path = os.path.expanduser("~/.password-store")
             self.pass_cmd = ["pass"]
 
-
-
+    def get_keys(self):
+        """Return the list of keys in the pass db."""
+        keys = [os.path.join(dirpath, fn)[len(self.path):-4]
+                for dirpath, dirnames, files in os.walk(self.path)
+                for fn in files if fn.endswith('.gpg')]
+        return keys
