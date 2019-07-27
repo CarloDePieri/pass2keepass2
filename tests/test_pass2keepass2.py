@@ -3,7 +3,7 @@ import os
 import pytest
 
 from pykeepass import PyKeePass
-from pass2keepass2 import PassReader, PassKey
+from pass2keepass2 import PassReader, PassKey, P2KP2, DbAlreadyExistsException
 
 
 class TestInitialDb:
@@ -43,7 +43,6 @@ class TestPassReaderInit:
         assert pr.path == os.path.expanduser(custom_path)
 
 
-@pytest.mark.runthis
 class TestPassReader:
     """Test: PassReader..."""
 
@@ -126,3 +125,35 @@ class TestPassKey:
         assert key.user == "myusername"
         assert key.notes == "some notes something interesting"
         assert key.custom_properties["cell_number"] == "00000000"
+
+
+@pytest.fixture
+def delete_test_db():
+    """Delete the test db every test."""
+    yield
+    if os.path.exists("tests/test-db.kdbx"):
+        os.remove("tests/test-db.kdbx")
+
+
+@pytest.mark.runthis
+@pytest.mark.usefixtures("delete_test_db")
+class TestP2Kp2:
+    """Test: P2KP2..."""
+
+    def test_should_create_a_default_new_file(self):
+        """P2kp2 should create a default new file."""
+        P2KP2()
+        assert os.path.exists("pass.kdbx")
+        os.remove("pass.kdbx")
+
+    def test_should_allow_to_specify_a_custom_path_for_the_new_db_file(self):
+        """P2kp2 should allow to specify a custom path for the new db file."""
+        P2KP2("tests/test-db.kdbx")
+
+    def test_should_raise_an_error_if_the_db_already_exists(self):
+        """P2kp2 should raise an error if the db already exists."""
+        open("tests/test-db.kdbx", "a").close()
+        with pytest.raises(DbAlreadyExistsException):
+            P2KP2("tests/test-db.kdbx")
+            os.remove("tests/test-db.kdbx")
+

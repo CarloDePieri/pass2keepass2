@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+from shutil import copyfile
 from typing import List, Tuple, Dict
 
 PassKeyCls = "PassKey"
@@ -112,3 +113,16 @@ class PassKey:
                 self.custom_properties.update({key: value})
 
 
+class DbAlreadyExistsException(Exception):
+    """Trying to overwrite an already existing keepass db."""
+
+
+class P2KP2:
+    """Convert a Pass db into a Keepass2 one."""
+
+    def __init__(self, destination="pass.kdbx"):
+        """Constructor for P2KP2"""
+        if not os.path.exists(destination):
+            copyfile("empty.kdbx", destination)
+        else:
+            raise DbAlreadyExistsException()
