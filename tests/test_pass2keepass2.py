@@ -92,3 +92,11 @@ class TestPassKey:
               'interesting\ncell_number: 00000000\n'
         assert decrypted_key == key
 
+    def test_should_be_able_to_recognize_a_valid_key_line(self):
+        """Pass key should be able to recognize a valid key line."""
+        assert PassKey.is_valid_line("some: valid line") is True
+        assert PassKey.is_valid_line("some NOT valid line") is False
+
+    def test_should_be_able_to_parse_a_valid_key_line(self):
+        """Pass key should be able to parse a valid key line."""
+        assert PassKey.parse_key_line("some: valid line") == ("some", "valid line")

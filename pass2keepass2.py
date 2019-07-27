@@ -62,3 +62,14 @@ class PassKey:
     def decrypt_key(reader: PassReader, key: str) -> str:
         """Decrypt the key using pass and return it as a string."""
         return subprocess.check_output(reader.pass_cmd + ["show", key]).decode("UTF-8")
+
+    @staticmethod
+    def is_valid_line(key_line):
+        """Accept as valid only lines in the format of 'key: value'."""
+        return key_line.find(":") > 0
+
+    @staticmethod
+    def parse_key_line(key_line):
+        """Parse a line in the format 'key: value'."""
+        stuff = key_line.split(":", 1)
+        return stuff[0].strip(), stuff[1].strip()
