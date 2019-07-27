@@ -43,17 +43,18 @@ class TestPassReaderInit:
         assert pr.path == os.path.expanduser(custom_path)
 
 
-class TestPassReaderGetKeys:
-    """Test: PassReaderGetKeys..."""
+@pytest.mark.runthis
+class TestPassReader:
+    """Test: PassReader..."""
 
     pr: PassReader
 
     @pytest.fixture(scope="class", autouse=True)
     def setup(self, request):
-        """TestPassReaderGetKeys setup"""
+        """TestPassReader setup"""
         request.cls.pr = PassReader(path="tests/password-store")
 
-    def test_should_return_the_list_of_pass_db_keys(self):
+    def test_get_keys_should_return_the_list_of_pass_db_keys(self):
         """Pass reader get keys should return the list of pass db keys."""
         keys = self.pr.get_keys()
         assert "/test1" in keys
@@ -61,8 +62,13 @@ class TestPassReaderGetKeys:
         assert "/docs/test3" in keys
         assert "/web/emails/test4" in keys
 
+    def test_parse_key_should_return_a_pass_key_object(self):
+        """Pass reader parse key should return a PassKey object."""
+        key = self.pr.parse_key("/test1")
+        assert type(key) is PassKey
+        assert key.title == "test1"
 
-@pytest.mark.runthis
+
 class TestPassKey:
     """Test: PassKey..."""
 
@@ -100,3 +106,12 @@ class TestPassKey:
     def test_should_be_able_to_parse_a_valid_key_line(self):
         """Pass key should be able to parse a valid key line."""
         assert PassKey.parse_key_line("some: valid line") == ("some", "valid line")
+
+    def test_should_correctly_parse_all_relevant_data(self):
+        """Pass key should correctly parse all relevant data."""
+        key = PassKey(self.pr, "/test1")
+        assert key.password == "somepassword"
+        assert key.url == "someurl.com"
+        assert key.user == "myusername"
+        assert key.notes == "some notes something interesting"
+        assert key.custom_properties["cell_number"] == "00000000"
