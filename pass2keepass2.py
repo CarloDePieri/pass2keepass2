@@ -140,5 +140,14 @@ class P2KP2:
         self.db.save()
 
     def add_key(self, key: PassKey) -> Entry:
-        group = self.db.root_group
-        return self.db.add_entry(group, key.title, key.user, key.password)
+        # find the correct group for the key. If not there, create it
+        key_group = self.db.root_group  # start from the root group
+        if len(key.groups) > 0:
+            for group_name in key.groups:
+                # since pass folder names are unique, the possible first result is also the only one
+                group = self.db.find_groups(name=group_name, recursive=False, group=key_group, first=True)
+                if group is None:
+                    # the group is not already there, let's create it
+                    group = self.db.add_group(destination_group=key_group, group_name=group_name)
+                key_group = group
+        return self.db.add_entry(key_group, key.title, key.user, key.password)

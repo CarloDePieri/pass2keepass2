@@ -4,6 +4,7 @@ import pytest
 
 from pykeepass import PyKeePass
 from pykeepass.entry import Entry
+from pykeepass.group import Group
 from pass2keepass2 import PassReader, PassKey, P2KP2, DbAlreadyExistsException
 
 
@@ -226,3 +227,18 @@ class TestP2Kp2AddKey:
         """P2kp2 add_key should actually add the key."""
         assert self.entry0 in self.p2kp2.db.entries
         assert self.entry1 in self.p2kp2.db.entries
+
+    def test_should_correctly_set_groups(self):
+        """P2kp2 add_key should correctly set groups."""
+        group0: Group = self.entry0.group
+        assert group0.path == "/"
+        group1: Group = self.entry1.group
+        assert group1.path == "web/emails"
+
+    def test_should_be_able_to_add_entries_in_already_existing_groups(self):
+        """P2kp2 add_key should be able to use existing groups."""
+        ngroups = len(self.p2kp2.db.groups)
+        pass_entry2 = list(filter(lambda x: x.title == "test2", self.reader.keys))[0]
+        entry2 = self.p2kp2.add_key(pass_entry2)
+        assert entry2.group.path == "web"
+        assert ngroups == len(self.p2kp2.db.groups)
