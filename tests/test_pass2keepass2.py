@@ -68,6 +68,17 @@ class TestPassReader:
         assert type(key) is PassKey
         assert key.title == "test1"
 
+    def test_should_be_able_to_parse_the_db_with_parse_db(self):
+        """Pass reader should be able to parse the db with parse db."""
+        self.pr.parse_db()
+        keys = self.pr.keys
+        keys_names = list(map(lambda x: x.title, keys))
+        assert len(keys) == 4
+        assert "test1" in keys_names
+        assert "test2" in keys_names
+        assert "test3" in keys_names
+        assert "test4" in keys_names
+
 
 class TestPassKey:
     """Test: PassKey..."""

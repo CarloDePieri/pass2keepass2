@@ -4,9 +4,13 @@ import os
 import subprocess
 from typing import List, Tuple, Dict
 
+PassKeyCls = "PassKey"
+
 
 class PassReader:
     """Read a pass db and construct an in-memory version of it."""
+
+    keys: List[PassKeyCls] = []
 
     def __init__(self, path: str = None):
         """Constructor for PassReader
@@ -28,9 +32,14 @@ class PassReader:
                 for fn in files if fn.endswith('.gpg')]
         return keys
 
-    def parse_key(self, key):
+    def parse_key(self, key: str) -> PassKeyCls:
         """Return a parsed PassKey."""
         return PassKey(reader=self, key=key)
+
+    def parse_db(self):
+        """Populate the keys list with all the data from the pass db."""
+        for key in self.get_keys():
+            self.keys.append(self.parse_key(key))
 
 
 class PassKey:
@@ -101,3 +110,5 @@ class PassKey:
                 self.notes = value
             else:
                 self.custom_properties.update({key: value})
+
+
