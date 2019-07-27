@@ -3,6 +3,7 @@ import os
 import pytest
 
 from pykeepass import PyKeePass
+from pykeepass.entry import Entry
 from pass2keepass2 import PassReader, PassKey, P2KP2, DbAlreadyExistsException
 
 
@@ -19,7 +20,8 @@ class TestInitialDb:
     def test_should_be_empty(self):
         """Initial db should be empty."""
         assert len(self.kp.entries) == 0
-        assert len(self.kp.groups) == 0
+        assert len(self.kp.groups) == 1
+        assert self.kp.groups[0].is_root_group
 
     def test_should_have_no_password(self):
         """Initial db should have no password."""
@@ -175,3 +177,52 @@ class TestP2kp2Init:
         """P2kp2 should set the given password."""
         P2KP2(password=test_pass, destination=test_db)
         PyKeePass(test_db, password=test_pass)  # this will fail if the pass is wrong
+
+
+@pytest.mark.runthis
+class TestP2Kp2AddKey:
+    """Test: P2kp2 add_key..."""
+
+    reader: PassReader
+    p2kp2: P2KP2
+    entry0: Entry
+    entry1: Entry
+    pass_entry0: PassKey
+    pass_entry1: PassKey
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup(self, request, reset_db_after_all_class_test):
+        """TestP2Kp2AddKey setup"""
+        reader = PassReader(path="tests/password-store")
+        reader.parse_db()
+        request.cls.reader = reader
+        request.cls.p2kp2 = P2KP2(password=test_pass, destination=test_db)
+        request.cls.pass_entry0 = list(filter(lambda x: x.title == "test1", self.reader.keys))[0]
+        request.cls.pass_entry1 = list(filter(lambda x: x.title == "test4", self.reader.keys))[0]
+        request.cls.entry0 = request.cls.p2kp2.add_key(request.cls.pass_entry0)
+        request.cls.entry1 = request.cls.p2kp2.add_key(request.cls.pass_entry1)
+
+    def test_should_correctly_set_the_title(self):
+        """P2kp2 add_key should correctly set the title."""
+        assert self.pass_entry0.title == self.entry0.title
+        assert self.pass_entry1.title == self.entry1.title
+
+    def test_should_correctly_set_the_password(self):
+        """P2kp2 add_key should correctly set the password."""
+        assert self.pass_entry0.password == self.entry0.password
+        assert self.pass_entry1.password == self.entry1.password
+
+    def test_should_correctly_set_the_username(self):
+        """P2kp2 add_key should correctly set the username."""
+        assert self.pass_entry0.user == self.entry0.username
+        assert self.pass_entry1.user == self.entry1.username
+
+    def test_should_return_a_pykeepass_entry(self):
+        """P2kp2 add_key should return a pykeepass entry."""
+        assert type(self.entry0) is Entry
+        assert type(self.entry1) is Entry
+
+    def test_should_actually_add_the_key(self):
+        """P2kp2 add_key should actually add the key."""
+        assert self.entry0 in self.p2kp2.db.entries
+        assert self.entry1 in self.p2kp2.db.entries

@@ -6,6 +6,7 @@ from shutil import copyfile
 from typing import List, Tuple, Dict
 
 from pykeepass import PyKeePass
+from pykeepass.entry import Entry
 
 PassKeyCls = "PassKey"
 
@@ -48,12 +49,12 @@ class PassReader:
 class PassKey:
     """A simple pass key in-memory representation"""
 
-    groups: List[str]
-    title: str
-    password: str
-    url: str
-    user: str
-    notes: str
+    groups: List[str] = []
+    title: str = ""
+    password: str = ""
+    url: str = ""
+    user: str = ""
+    notes: str = ""
     custom_properties: Dict[str, str] = {}
     to_skip = ["---", ""]  # these lines will be skipped when parsing
 
@@ -122,6 +123,8 @@ class DbAlreadyExistsException(Exception):
 class P2KP2:
     """Convert a Pass db into a Keepass2 one."""
 
+    db: PyKeePass
+
     def __init__(self, password: str, destination: str = "pass.kdbx"):
         """Constructor for P2KP2
 
@@ -135,3 +138,7 @@ class P2KP2:
         self.db = PyKeePass(destination)
         self.db.password = password
         self.db.save()
+
+    def add_key(self, key: PassKey) -> Entry:
+        group = self.db.root_group
+        return self.db.add_entry(group, key.title, key.user, key.password)
