@@ -127,33 +127,51 @@ class TestPassKey:
         assert key.custom_properties["cell_number"] == "00000000"
 
 
-@pytest.fixture
+test_pass = "somesecurepassword"
+test_db = "tests/test-db.kdbx"
+
+
 def delete_test_db():
+    if os.path.exists(test_db):
+        os.remove(test_db)
+
+
+@pytest.fixture
+def reset_db_every_test():
     """Delete the test db every test."""
     yield
-    if os.path.exists("tests/test-db.kdbx"):
-        os.remove("tests/test-db.kdbx")
+    delete_test_db()
 
 
-@pytest.mark.runthis
-@pytest.mark.usefixtures("delete_test_db")
-class TestP2Kp2:
-    """Test: P2KP2..."""
+@pytest.fixture(scope="class")
+def reset_db_after_all_class_test():
+    """Delete the test db after all the class test run."""
+    yield
+    delete_test_db()
+
+
+@pytest.mark.usefixtures("reset_db_every_test")
+class TestP2kp2Init:
+    """Test: P2kp2 init..."""
 
     def test_should_create_a_default_new_file(self):
-        """P2kp2 should create a default new file."""
-        P2KP2()
+        """P2kp2 init should create a default new file."""
+        P2KP2(password=test_pass)
         assert os.path.exists("pass.kdbx")
         os.remove("pass.kdbx")
 
     def test_should_allow_to_specify_a_custom_path_for_the_new_db_file(self):
-        """P2kp2 should allow to specify a custom path for the new db file."""
-        P2KP2("tests/test-db.kdbx")
+        """P2kp2 init should allow to specify a custom path for the new db file."""
+        P2KP2(password=test_pass, destination=test_db)
 
     def test_should_raise_an_error_if_the_db_already_exists(self):
-        """P2kp2 should raise an error if the db already exists."""
-        open("tests/test-db.kdbx", "a").close()
+        """P2kp2 init should raise an error if the db already exists."""
+        open(test_db, "a").close()
         with pytest.raises(DbAlreadyExistsException):
-            P2KP2("tests/test-db.kdbx")
+            P2KP2(password=test_pass, destination=test_db)
             os.remove("tests/test-db.kdbx")
 
+    def test_should_set_the_given_password(self):
+        """P2kp2 should set the given password."""
+        P2KP2(password=test_pass, destination=test_db)
+        PyKeePass(test_db, password=test_pass)  # this will fail if the pass is wrong

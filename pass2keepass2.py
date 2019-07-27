@@ -5,6 +5,8 @@ import subprocess
 from shutil import copyfile
 from typing import List, Tuple, Dict
 
+from pykeepass import PyKeePass
+
 PassKeyCls = "PassKey"
 
 
@@ -120,9 +122,16 @@ class DbAlreadyExistsException(Exception):
 class P2KP2:
     """Convert a Pass db into a Keepass2 one."""
 
-    def __init__(self, destination="pass.kdbx"):
-        """Constructor for P2KP2"""
+    def __init__(self, password: str, destination: str = "pass.kdbx"):
+        """Constructor for P2KP2
+
+        :param password: the password for the new Keepass db
+        :param destination: the final db path
+        """
         if not os.path.exists(destination):
             copyfile("empty.kdbx", destination)
         else:
             raise DbAlreadyExistsException()
+        self.db = PyKeePass(destination)
+        self.db.password = password
+        self.db.save()
