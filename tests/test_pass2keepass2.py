@@ -3,7 +3,7 @@ import os
 import pytest
 
 from pykeepass import PyKeePass
-from pass2keepass2 import PassReader
+from pass2keepass2 import PassReader, PassKey
 
 
 class TestInitialDb:
@@ -60,3 +60,35 @@ class TestPassReaderGetKeys:
         assert "/web/test2" in keys
         assert "/docs/test3" in keys
         assert "/web/emails/test4" in keys
+
+
+@pytest.mark.runthis
+class TestPassKey:
+    """Test: PassKey..."""
+
+    pr: PassReader
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup(self, request):
+        """TestPassKey setup"""
+        request.cls.pr = PassReader(path="tests/password-store")
+
+    def test_should_correctly_parse_the_group(self):
+        """Pass key should correctly parse the group."""
+        assert PassKey(self.pr, "/test1").groups == []
+        assert PassKey(self.pr, "/docs/test3").groups == ["docs"]
+        assert PassKey(self.pr, "/web/emails/test4").groups == ["web", "emails"]
+
+    def test_should_correctly_parse_the_key_name(self):
+        """Pass key should correctly parse the key name."""
+        assert PassKey(self.pr, "/test1").title == "test1"
+        assert PassKey(self.pr, "/docs/test3").title == "test3"
+        assert PassKey(self.pr, "/web/emails/test4").title == "test4"
+
+    def test_should_be_able_to_decrypt_a_key(self):
+        """Pass key should be able to decrypt a key."""
+        decrypted_key = PassKey.decrypt_key(self.pr, "/test1")
+        key = 'somepassword\n---\nurl: someurl.com\nuser: myusername\nnotes: some notes something ' \
+              'interesting\ncell_number: 00000000\n'
+        assert decrypted_key == key
+
