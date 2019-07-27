@@ -59,3 +59,4 @@ class TestPassReaderGetKeys:
         assert "/test1" in keys
         assert "/web/test2" in keys
         assert "/docs/test3" in keys
+        assert "/web/emails/test4" in keys

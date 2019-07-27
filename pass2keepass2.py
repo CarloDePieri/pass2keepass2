@@ -1,3 +1,5 @@
+# TODO warning about lack of in-memory security
+
 import os
 
 
