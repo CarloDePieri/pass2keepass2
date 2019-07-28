@@ -205,18 +205,18 @@ class TestP2Kp2AddKey:
 
     def test_should_correctly_set_the_title(self):
         """P2kp2 add_key should correctly set the title."""
-        assert self.pass_entry0.title == self.entry0.title
-        assert self.pass_entry1.title == self.entry1.title
+        assert self.entry0.title == self.pass_entry0.title
+        assert self.entry1.title == self.pass_entry1.title
 
     def test_should_correctly_set_the_password(self):
         """P2kp2 add_key should correctly set the password."""
-        assert self.pass_entry0.password == self.entry0.password
-        assert self.pass_entry1.password == self.entry1.password
+        assert self.entry0.password == self.pass_entry0.password
+        assert self.entry1.password == self.pass_entry1.password
 
     def test_should_correctly_set_the_username(self):
         """P2kp2 add_key should correctly set the username."""
-        assert self.pass_entry0.user == self.entry0.username
-        assert self.pass_entry1.user == self.entry1.username
+        assert self.entry0.username == self.pass_entry0.user
+        assert self.entry1.username == self.pass_entry1.user
 
     def test_should_return_a_pykeepass_entry(self):
         """P2kp2 add_key should return a pykeepass entry."""
@@ -242,3 +242,16 @@ class TestP2Kp2AddKey:
         entry2 = self.p2kp2.add_key(pass_entry2)
         assert entry2.group.path == "web"
         assert ngroups == len(self.p2kp2.db.groups)
+
+    def test_should_correctly_set_custom_properties(self):
+        """P2kp2 add_key should correctly set custom properties."""
+        for key, value in self.pass_entry0.custom_properties.items():
+            assert self.entry0.get_custom_property(key) == value
+
+    def test_should_correctly_set_the_url(self):
+        """P2kp2 add_key should correctly set the url."""
+        assert self.entry0.url == self.pass_entry0.url
+
+    def test_should_correctly_set_the_notes(self):
+        """P2kp2 add_key should correctly set the notes."""
+        assert self.entry0.notes == self.pass_entry0.notes

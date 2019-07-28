@@ -140,6 +140,11 @@ class P2KP2:
         self.db.save()
 
     def add_key(self, key: PassKey) -> Entry:
+        """Add a keepass entry to the db containing all data from the relative pass entry. Create the group if needed.
+
+        :param key: the original pass entry
+        :return: the newly added keepass entry
+        """
         # find the correct group for the key. If not there, create it
         key_group = self.db.root_group  # start from the root group
         if len(key.groups) > 0:
@@ -150,4 +155,12 @@ class P2KP2:
                     # the group is not already there, let's create it
                     group = self.db.add_group(destination_group=key_group, group_name=group_name)
                 key_group = group
-        return self.db.add_entry(key_group, key.title, key.user, key.password)
+        # create the entry, setting group, title, user and pass
+        entry = self.db.add_entry(key_group, key.title, key.user, key.password)
+        # set the url and the notes
+        entry.url = key.url
+        entry.notes = key.notes
+        # add all custom fields
+        for key, value in key.custom_properties.items():
+            entry.set_custom_property(key, value)
+        return entry
