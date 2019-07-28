@@ -1,5 +1,57 @@
 #!/usr/bin/env python3
 
-# TODO script
-# TODO warning about lack of in-memory security
 # TODO license
+import argparse
+import os
+from getpass import getpass
+
+from p2kp2 import PassReader, P2KP2
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input', default=None)
+    parser.add_argument('-o', '--output', default=None)
+    args = parser.parse_args()
+
+    # Intro message and warnings
+    intro = "Welcome! pass2keepass2 will convert your pass database into a keepass2 one.\n\n" \
+            "> WARNING < This script DOES NOT try to be memory secure: your password will NOT be " \
+            "encrypted while in memory, so you probably want to execute this on a trusted hardware.\n\n" \
+            "The script will now read your input password-store, so you will probably be asked to" \
+            "unlock it.\nKeep in mind this may take a while, depending on the number of entries.\n\n" \
+            "Input password-store: {}\n" \
+            "Output keepass2 database: {}\n" \
+        .format(os.path.abspath(args.input) if args.input is not None else os.path.expanduser("~/.password-store"),
+                os.path.abspath(args.output) if args.output is not None else os.path.abspath("pass.kdbx"))
+    print(intro)
+    answer = input("Are you ready to proceed? [Y/n] ")
+    if not (answer.lower() == "y" or answer.lower() == ""):
+        print("Ok, bye!")
+        exit(1)
+
+    # Read the pass db
+    print("\n... Loading ...\n")
+    reader = PassReader(args.input)
+    reader.parse_db()
+    print("Password-store decrypted! {} entries are ready to be converted.".format(len(reader.entries)))
+
+    # Choose a password for keepass
+    print("Now choose a strong password for your new keepass database!\n")
+    password = None
+    while password is None:
+        p1 = getpass("A strong password: ")
+        p2 = getpass("Enter it again! ")
+        if p1 == p2:
+            password = p1
+        else:
+            print("\n >>> Entered passwords do not match, try again.\n")
+
+    # Write the keepass db
+    print("Alright! It's finally time to write the keepass db. Hold tight, this might take a while!")
+    print("\n... Loading ...\n")
+    p2kp2 = P2KP2(password=password, destination=args.output)
+    p2kp2.populate_db(reader)
+    print(
+        "ALL DONE! {} entries have been added to the new keepass database!\nHave a nice day!"
+        .format(len(p2kp2.db.entries))
+    )
