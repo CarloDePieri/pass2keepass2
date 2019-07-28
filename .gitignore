@@ -2,3 +2,6 @@
 .venv
 .idea
 __pycache__/
+/pass2keepass2.egg-info/
+p2kp2/pass2keepass2.iml
+pass2keepass2.iml

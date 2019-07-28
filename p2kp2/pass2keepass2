@@ -1,0 +1,8 @@
+#!/usr/bin/env python3
+
+# TODO script
+# TODO warning about lack of in-memory security
+# TODO license
+from p2kp2 import P2KP2
+
+P2KP2("somepass")
