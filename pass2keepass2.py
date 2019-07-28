@@ -14,7 +14,7 @@ PassKeyCls = "PassKey"
 class PassReader:
     """Read a pass db and construct an in-memory version of it."""
 
-    keys: List[PassKeyCls] = []
+    keys: List[PassKeyCls]
 
     def __init__(self, path: str = None):
         """Constructor for PassReader
@@ -22,6 +22,7 @@ class PassReader:
         :param path: optional password-store location.
             Default is '~/.password-store'.
         """
+        self.keys = []
         if path is not None:
             self.path = os.path.abspath(os.path.expanduser(path))
             self.pass_cmd = ["env", "PASSWORD_STORE_DIR={}".format(self.path), "pass"]
@@ -49,14 +50,15 @@ class PassReader:
 class PassKey:
     """A simple pass key in-memory representation"""
 
-    groups: List[str] = []
-    title: str = ""
-    password: str = ""
-    url: str = ""
-    user: str = ""
-    notes: str = ""
-    custom_properties: Dict[str, str] = {}
-    to_skip = ["---", ""]  # these lines will be skipped when parsing
+    to_skip: List[str] = ["---", ""]  # these lines will be skipped when parsing
+
+    groups: List[str]
+    title: str
+    password: str
+    url: str
+    user: str
+    notes: str
+    custom_properties: Dict[str, str]
 
     def __init__(self, reader: PassReader, key: str):
         """Constructor for PassKey.
@@ -64,6 +66,10 @@ class PassKey:
         :param reader:  a PassReader instance, used to access the key
         :param key:  string representing the key name
         """
+        self.url = ""
+        self.user = ""
+        self.notes = ""
+        self.custom_properties = {}
         self.groups = self.get_groups(key)
         self.title = self.get_title(key)
         key_string = self.decrypt_key(reader, key)
