@@ -2,13 +2,13 @@ import os
 import subprocess
 from typing import List, Dict, Tuple
 
-PassKeyCls = "PassKey"
+PassEntryCls = "PassEntry"
 
 
 class PassReader:
     """Read a pass db and construct an in-memory version of it."""
 
-    keys: List[PassKeyCls]
+    entries: List[PassEntryCls]
 
     def __init__(self, path: str = None):
         """Constructor for PassReader
@@ -16,7 +16,7 @@ class PassReader:
         :param path: optional password-store location.
             Default is '~/.password-store'.
         """
-        self.keys = []
+        self.entries = []
         if path is not None:
             self.path = os.path.abspath(os.path.expanduser(path))
             self.pass_cmd = ["env", "PASSWORD_STORE_DIR={}".format(self.path), "pass"]
@@ -24,25 +24,25 @@ class PassReader:
             self.path = os.path.expanduser("~/.password-store")
             self.pass_cmd = ["pass"]
 
-    def get_keys(self) -> List[str]:
-        """Return the list of keys in the pass db."""
-        keys = [os.path.join(dirpath, fn)[len(self.path):-4]
+    def get_pass_entries(self) -> List[str]:
+        """Return the list of entries in the pass db."""
+        entries = [os.path.join(dirpath, fn)[len(self.path):-4]
                 for dirpath, dirnames, files in os.walk(self.path)
                 for fn in files if fn.endswith('.gpg')]
-        return keys
+        return entries
 
-    def parse_key(self, key: str) -> PassKeyCls:
-        """Return a parsed PassKey."""
-        return PassKey(reader=self, key=key)
+    def parse_pass_entry(self, entry: str) -> PassEntryCls:
+        """Return a parsed PassEntry."""
+        return PassEntry(reader=self, entry=entry)
 
     def parse_db(self):
-        """Populate the keys list with all the data from the pass db."""
-        for key in self.get_keys():
-            self.keys.append(self.parse_key(key))
+        """Populate the entries list with all the data from the pass db."""
+        for entry in self.get_pass_entries():
+            self.entries.append(self.parse_pass_entry(entry))
 
 
-class PassKey:
-    """A simple pass key in-memory representation"""
+class PassEntry:
+    """A simple pass entry in-memory representation"""
 
     to_skip: List[str] = ["---", ""]  # these lines will be skipped when parsing
 
@@ -54,57 +54,57 @@ class PassKey:
     notes: str
     custom_properties: Dict[str, str]
 
-    def __init__(self, reader: PassReader, key: str):
-        """Constructor for PassKey.
+    def __init__(self, reader: PassReader, entry: str):
+        """Constructor for PassEntry.
 
-        :param reader:  a PassReader instance, used to access the key
-        :param key:  string representing the key name
+        :param reader:  a PassReader instance, used to access the entry
+        :param entry:  string representing the entry name
         """
         self.url = ""
         self.user = ""
         self.notes = ""
         self.custom_properties = {}
-        self.groups = self.get_groups(key)
-        self.title = self.get_title(key)
-        key_string = self.decrypt_key(reader, key)
-        self.parse_key_string(key_string)
+        self.groups = self.get_groups(entry)
+        self.title = self.get_title(entry)
+        entry_string = self.decrypt_entry(reader, entry)
+        self.parse_entry_string(entry_string)
 
     @staticmethod
-    def get_title(key: str) -> str:
-        """Return the key title."""
-        return key.split("/").pop()
+    def get_title(entry: str) -> str:
+        """Return the entry title."""
+        return entry.split("/").pop()
 
     @staticmethod
-    def get_groups(key: str) -> List[str]:
-        """Return the key groups."""
-        groups = key.split("/")
+    def get_groups(entry: str) -> List[str]:
+        """Return the entry groups."""
+        groups = entry.split("/")
         groups.pop()
         groups.pop(0)
         return groups
 
     @staticmethod
-    def decrypt_key(reader: PassReader, key: str) -> str:
-        """Decrypt the key using pass and return it as a string."""
-        return subprocess.check_output(reader.pass_cmd + ["show", key]).decode("UTF-8")
+    def decrypt_entry(reader: PassReader, entry: str) -> str:
+        """Decrypt the entry using pass and return it as a string."""
+        return subprocess.check_output(reader.pass_cmd + ["show", entry]).decode("UTF-8")
 
     @staticmethod
-    def is_valid_line(key_line: str) -> bool:
+    def is_valid_line(entry_line: str) -> bool:
         """Accept as valid only lines in the format of 'key: value'."""
-        return key_line.find(":") > 0
+        return entry_line.find(":") > 0
 
     @staticmethod
-    def parse_key_line(key_line: str) -> Tuple[str, str]:
+    def parse_entry_line(entry_line: str) -> Tuple[str, str]:
         """Parse a line in the format 'key: value'."""
-        data = key_line.split(":", 1)
+        data = entry_line.split(":", 1)
         return data[0].strip(), data[1].strip()
 
-    def parse_key_string(self, key_string: str) -> None:
-        """Parse a key and extract all useful data."""
-        lines = key_string.split("\n")
+    def parse_entry_string(self, entry_string: str) -> None:
+        """Parse a entry and extract all useful data."""
+        lines = entry_string.split("\n")
         self.password = lines.pop(0)
 
         lines = list(filter(lambda x: x not in self.to_skip and self.is_valid_line(x), lines))
-        data = list(map(lambda x: self.parse_key_line(x), lines))
+        data = list(map(lambda x: self.parse_entry_line(x), lines))
         for key, value in data:
             if key == "url":
                 self.url = value

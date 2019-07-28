@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from p2kp2 import PassReader, PassKey
+from p2kp2 import PassReader, PassEntry
 
 
 class TestPassReaderInit:
@@ -32,75 +32,75 @@ class TestPassReader:
         """TestPassReader setup"""
         request.cls.pr = PassReader(path="tests/password-store")
 
-    def test_get_keys_should_return_the_list_of_pass_db_keys(self):
-        """Pass reader get keys should return the list of pass db keys."""
-        keys = self.pr.get_keys()
-        assert "/test1" in keys
-        assert "/web/test2" in keys
-        assert "/docs/test3" in keys
-        assert "/web/emails/test4" in keys
+    def test_get_pass_entries_should_return_the_list_of_pass_db_entries(self):
+        """Pass reader get pass entries should return the list of pass db entries."""
+        entries = self.pr.get_pass_entries()
+        assert "/test1" in entries
+        assert "/web/test2" in entries
+        assert "/docs/test3" in entries
+        assert "/web/emails/test4" in entries
 
-    def test_parse_key_should_return_a_pass_key_object(self):
-        """Pass reader parse key should return a PassKey object."""
-        key = self.pr.parse_key("/test1")
-        assert type(key) is PassKey
-        assert key.title == "test1"
+    def test_parse_pass_entry_should_return_a_pass_entry_object(self):
+        """Pass reader parse pass entry should return a PassEntry object."""
+        entry = self.pr.parse_pass_entry("/test1")
+        assert type(entry) is PassEntry
+        assert entry.title == "test1"
 
     def test_should_be_able_to_parse_the_db_with_parse_db(self):
         """Pass reader should be able to parse the db with parse db."""
         self.pr.parse_db()
-        keys = self.pr.keys
-        keys_names = list(map(lambda x: x.title, keys))
-        assert len(keys) == 4
-        assert "test1" in keys_names
-        assert "test2" in keys_names
-        assert "test3" in keys_names
-        assert "test4" in keys_names
+        entries = self.pr.entries
+        entries_name = list(map(lambda x: x.title, entries))
+        assert len(entries) == 4
+        assert "test1" in entries_name
+        assert "test2" in entries_name
+        assert "test3" in entries_name
+        assert "test4" in entries_name
 
 
-class TestPassKey:
-    """Test: PassKey..."""
+class TestPassEntry:
+    """Test: PassEntry..."""
 
     pr: PassReader
 
     @pytest.fixture(scope="class", autouse=True)
     def setup(self, request):
-        """TestPassKey setup"""
+        """TestPassEntry setup"""
         request.cls.pr = PassReader(path="tests/password-store")
 
     def test_should_correctly_parse_the_group(self):
-        """Pass key should correctly parse the group."""
-        assert PassKey(self.pr, "/test1").groups == []
-        assert PassKey(self.pr, "/docs/test3").groups == ["docs"]
-        assert PassKey(self.pr, "/web/emails/test4").groups == ["web", "emails"]
+        """Pass entry should correctly parse the group."""
+        assert PassEntry(self.pr, "/test1").groups == []
+        assert PassEntry(self.pr, "/docs/test3").groups == ["docs"]
+        assert PassEntry(self.pr, "/web/emails/test4").groups == ["web", "emails"]
 
-    def test_should_correctly_parse_the_key_name(self):
-        """Pass key should correctly parse the key name."""
-        assert PassKey(self.pr, "/test1").title == "test1"
-        assert PassKey(self.pr, "/docs/test3").title == "test3"
-        assert PassKey(self.pr, "/web/emails/test4").title == "test4"
+    def test_should_correctly_parse_the_entry_name(self):
+        """Pass entry should correctly parse the entry name."""
+        assert PassEntry(self.pr, "/test1").title == "test1"
+        assert PassEntry(self.pr, "/docs/test3").title == "test3"
+        assert PassEntry(self.pr, "/web/emails/test4").title == "test4"
 
-    def test_should_be_able_to_decrypt_a_key(self):
-        """Pass key should be able to decrypt a key."""
-        decrypted_key = PassKey.decrypt_key(self.pr, "/test1")
-        key = 'somepassword\n---\nurl: someurl.com\nuser: myusername\nnotes: some notes something ' \
+    def test_should_be_able_to_decrypt_an_entry(self):
+        """Pass entry should be able to decrypt an entry."""
+        decrypted_entry = PassEntry.decrypt_entry(self.pr, "/test1")
+        entry = 'somepassword\n---\nurl: someurl.com\nuser: myusername\nnotes: some notes something ' \
               'interesting\ncell_number: 00000000\n'
-        assert decrypted_key == key
+        assert decrypted_entry == entry
 
-    def test_should_be_able_to_recognize_a_valid_key_line(self):
-        """Pass key should be able to recognize a valid key line."""
-        assert PassKey.is_valid_line("some: valid line") is True
-        assert PassKey.is_valid_line("some NOT valid line") is False
+    def test_should_be_able_to_recognize_a_valid_entry_line(self):
+        """Pass entry should be able to recognize a valid entry line."""
+        assert PassEntry.is_valid_line("some: valid line") is True
+        assert PassEntry.is_valid_line("some NOT valid line") is False
 
-    def test_should_be_able_to_parse_a_valid_key_line(self):
-        """Pass key should be able to parse a valid key line."""
-        assert PassKey.parse_key_line("some: valid line") == ("some", "valid line")
+    def test_should_be_able_to_parse_a_valid_entry_line(self):
+        """Pass entry should be able to parse a valid entry line."""
+        assert PassEntry.parse_entry_line("some: valid line") == ("some", "valid line")
 
     def test_should_correctly_parse_all_relevant_data(self):
-        """Pass key should correctly parse all relevant data."""
-        key = PassKey(self.pr, "/test1")
-        assert key.password == "somepassword"
-        assert key.url == "someurl.com"
-        assert key.user == "myusername"
-        assert key.notes == "some notes something interesting"
-        assert key.custom_properties["cell_number"] == "00000000"
+        """Pass entry should correctly parse all relevant data."""
+        entry = PassEntry(self.pr, "/test1")
+        assert entry.password == "somepassword"
+        assert entry.url == "someurl.com"
+        assert entry.user == "myusername"
+        assert entry.notes == "some notes something interesting"
+        assert entry.custom_properties["cell_number"] == "00000000"

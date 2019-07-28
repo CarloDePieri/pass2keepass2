@@ -5,7 +5,7 @@ from shutil import copyfile
 from pykeepass import PyKeePass
 from pykeepass.entry import Entry
 
-from p2kp2 import PassReader, PassKey
+from p2kp2 import PassReader, PassEntry
 
 empty_db_path = pkg_resources.resource_filename(__name__, "empty.kdbx")
 
@@ -35,32 +35,32 @@ class P2KP2:
 
     def populate_db(self, pass_reader: PassReader):
         """Populate the keepass db with data from the PassReader."""
-        for pass_entry in pass_reader.keys:
-            self.add_key(pass_entry)
+        for pass_entry in pass_reader.entries:
+            self.add_entry(pass_entry)
         self.db.save()
 
-    def add_key(self, key: PassKey) -> Entry:
+    def add_entry(self, pass_entry: PassEntry) -> Entry:
         """Add a keepass entry to the db containing all data from the relative pass entry. Create the group if needed.
 
-        :param key: the original pass entry
+        :param pass_entry: the original pass entry
         :return: the newly added keepass entry
         """
-        # find the correct group for the key. If not there, create it
-        key_group = self.db.root_group  # start from the root group
-        if len(key.groups) > 0:
-            for group_name in key.groups:
+        # find the correct group for the entry. If not there, create it
+        entry_group = self.db.root_group  # start from the root group
+        if len(pass_entry.groups) > 0:
+            for group_name in pass_entry.groups:
                 # since pass folder names are unique, the possible first result is also the only one
-                group = self.db.find_groups(name=group_name, recursive=False, group=key_group, first=True)
+                group = self.db.find_groups(name=group_name, recursive=False, group=entry_group, first=True)
                 if group is None:
                     # the group is not already there, let's create it
-                    group = self.db.add_group(destination_group=key_group, group_name=group_name)
-                key_group = group
+                    group = self.db.add_group(destination_group=entry_group, group_name=group_name)
+                entry_group = group
         # create the entry, setting group, title, user and pass
-        entry = self.db.add_entry(key_group, key.title, key.user, key.password)
+        entry = self.db.add_entry(entry_group, pass_entry.title, pass_entry.user, pass_entry.password)
         # set the url and the notes
-        entry.url = key.url
-        entry.notes = key.notes
+        entry.url = pass_entry.url
+        entry.notes = pass_entry.notes
         # add all custom fields
-        for key, value in key.custom_properties.items():
-            entry.set_custom_property(key, value)
+        for pass_entry, value in pass_entry.custom_properties.items():
+            entry.set_custom_property(pass_entry, value)
         return entry

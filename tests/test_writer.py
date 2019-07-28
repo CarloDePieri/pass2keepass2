@@ -1,12 +1,11 @@
 import os
 
-import pkg_resources
 import pytest
 from pykeepass import PyKeePass
 from pykeepass.entry import Entry
 from pykeepass.group import Group
 
-from p2kp2 import P2KP2, DbAlreadyExistsException, PassReader, PassKey, empty_db_path
+from p2kp2 import P2KP2, DbAlreadyExistsException, PassReader, PassEntry, empty_db_path
 
 test_pass = "somesecurepassword"
 test_db = "tests/test-db.kdbx"
@@ -79,79 +78,79 @@ class TestP2kp2Init:
         PyKeePass(test_db, password=test_pass)  # this will fail if the pass is wrong
 
 
-class TestP2Kp2AddKey:
-    """Test: P2kp2 add_key..."""
+class TestP2Kp2AddEntry:
+    """Test: P2kp2 add_entry..."""
 
     reader: PassReader
     p2kp2: P2KP2
     entry0: Entry
     entry1: Entry
-    pass_entry0: PassKey
-    pass_entry1: PassKey
+    pass_entry0: PassEntry
+    pass_entry1: PassEntry
 
     @pytest.fixture(scope="class", autouse=True)
     def setup(self, request, reset_db_after_all_class_test):
-        """TestP2Kp2AddKey setup"""
+        """TestP2Kp2AddEntry setup"""
         reader = PassReader(path="tests/password-store")
         reader.parse_db()
         request.cls.reader = reader
         request.cls.p2kp2 = P2KP2(password=test_pass, destination=test_db)
-        request.cls.pass_entry0 = list(filter(lambda x: x.title == "test1", self.reader.keys))[0]
-        request.cls.pass_entry1 = list(filter(lambda x: x.title == "test4", self.reader.keys))[0]
-        request.cls.entry0 = request.cls.p2kp2.add_key(request.cls.pass_entry0)
-        request.cls.entry1 = request.cls.p2kp2.add_key(request.cls.pass_entry1)
+        request.cls.pass_entry0 = list(filter(lambda x: x.title == "test1", self.reader.entries))[0]
+        request.cls.pass_entry1 = list(filter(lambda x: x.title == "test4", self.reader.entries))[0]
+        request.cls.entry0 = request.cls.p2kp2.add_entry(request.cls.pass_entry0)
+        request.cls.entry1 = request.cls.p2kp2.add_entry(request.cls.pass_entry1)
 
     def test_should_correctly_set_the_title(self):
-        """P2kp2 add_key should correctly set the title."""
+        """P2kp2 add_entry should correctly set the title."""
         assert self.entry0.title == self.pass_entry0.title
         assert self.entry1.title == self.pass_entry1.title
 
     def test_should_correctly_set_the_password(self):
-        """P2kp2 add_key should correctly set the password."""
+        """P2kp2 add_entry should correctly set the password."""
         assert self.entry0.password == self.pass_entry0.password
         assert self.entry1.password == self.pass_entry1.password
 
     def test_should_correctly_set_the_username(self):
-        """P2kp2 add_key should correctly set the username."""
+        """P2kp2 add_entry should correctly set the username."""
         assert self.entry0.username == self.pass_entry0.user
         assert self.entry1.username == self.pass_entry1.user
 
     def test_should_return_a_pykeepass_entry(self):
-        """P2kp2 add_key should return a pykeepass entry."""
+        """P2kp2 add_entry should return a pykeepass entry."""
         assert type(self.entry0) is Entry
         assert type(self.entry1) is Entry
 
-    def test_should_actually_add_the_key(self):
-        """P2kp2 add_key should actually add the key."""
+    def test_should_actually_add_the_entry(self):
+        """P2kp2 add_entry should actually add the entry."""
         assert self.entry0 in self.p2kp2.db.entries
         assert self.entry1 in self.p2kp2.db.entries
 
     def test_should_correctly_set_groups(self):
-        """P2kp2 add_key should correctly set groups."""
+        """P2kp2 add_entry should correctly set groups."""
         group0: Group = self.entry0.group
         assert group0.path == "/"
         group1: Group = self.entry1.group
         assert group1.path == "web/emails"
 
     def test_should_be_able_to_add_entries_in_already_existing_groups(self):
-        """P2kp2 add_key should be able to use existing groups."""
+        """P2kp2 add_entry should be able to use existing groups."""
         ngroups = len(self.p2kp2.db.groups)
-        pass_entry2 = list(filter(lambda x: x.title == "test2", self.reader.keys))[0]
-        entry2 = self.p2kp2.add_key(pass_entry2)
+        pass_entry2 = list(filter(lambda x: x.title == "test2", self.reader.entries))[0]
+        entry2 = self.p2kp2.add_entry(pass_entry2)
         assert entry2.group.path == "web"
         assert ngroups == len(self.p2kp2.db.groups)
 
     def test_should_correctly_set_custom_properties(self):
-        """P2kp2 add_key should correctly set custom properties."""
+        """P2kp2 add_entry should correctly set custom properties."""
         for key, value in self.pass_entry0.custom_properties.items():
             assert self.entry0.get_custom_property(key) == value
 
     def test_should_correctly_set_the_url(self):
-        """P2kp2 add_key should correctly set the url."""
+        """P2kp2 add_entry should correctly set the url."""
         assert self.entry0.url == self.pass_entry0.url
 
     def test_should_correctly_set_the_notes(self):
-        """P2kp2 add_key should correctly set the notes."""
+        """P2kp2 add_entry should correctly set the notes."""
         assert self.entry0.notes == self.pass_entry0.notes
 
 
