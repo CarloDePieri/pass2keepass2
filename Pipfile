@@ -11,6 +11,7 @@ pytest-spec = "*"
 invoke = "*"
 
 [packages]
+pykeepass = "*"
 
 [requires]
 python_version = "3.7"
