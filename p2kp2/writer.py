@@ -19,12 +19,14 @@ class P2KP2:
 
     db: PyKeePass
 
-    def __init__(self, password: str, destination: str = "pass.kdbx"):
+    def __init__(self, password: str, destination: str = None):
         """Constructor for P2KP2
 
         :param password: the password for the new Keepass db
         :param destination: the final db path
         """
+        if destination is None:
+            destination = "pass.kdbx"
         if not os.path.exists(destination):
             copyfile(empty_db_path, destination)
         else:
