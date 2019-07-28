@@ -145,6 +145,12 @@ class P2KP2:
         self.db.password = password
         self.db.save()
 
+    def populate_db(self, pass_reader: PassReader):
+        """Populate the keepass db with data from the PassReader."""
+        for pass_entry in pass_reader.keys:
+            self.add_key(pass_entry)
+        self.db.save()
+
     def add_key(self, key: PassKey) -> Entry:
         """Add a keepass entry to the db containing all data from the relative pass entry. Create the group if needed.
 

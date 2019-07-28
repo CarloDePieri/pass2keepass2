@@ -180,7 +180,6 @@ class TestP2kp2Init:
         PyKeePass(test_db, password=test_pass)  # this will fail if the pass is wrong
 
 
-@pytest.mark.runthis
 class TestP2Kp2AddKey:
     """Test: P2kp2 add_key..."""
 
@@ -255,3 +254,28 @@ class TestP2Kp2AddKey:
     def test_should_correctly_set_the_notes(self):
         """P2kp2 add_key should correctly set the notes."""
         assert self.entry0.notes == self.pass_entry0.notes
+
+
+class TestP2Kp2:
+    """Test: P2kp2..."""
+
+    db: PyKeePass
+    pr: PassReader
+
+    @pytest.fixture(scope="class", autouse=True)
+    def setup(self, request, reset_db_after_all_class_test):
+        """TestP2Kp2 setup"""
+        # prepare the PassReader
+        reader = PassReader(path="tests/password-store")
+        reader.parse_db()
+        request.cls.pr = reader
+        # populate the new db
+        p2kp2 = P2KP2(password=test_pass, destination=test_db)
+        p2kp2.populate_db(reader)
+        # prepare it to be read
+        request.cls.db = PyKeePass(test_db, password=test_pass)
+
+    def test_should_actually_populate_the_db_with_populate_db(self):
+        """P 2 kp 2 should actually populate the db with populate db."""
+        assert len(self.db.entries) == 4
+
