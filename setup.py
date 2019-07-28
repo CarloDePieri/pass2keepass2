@@ -6,5 +6,8 @@ setup(
     packages=['p2kp2'],
     scripts={
         'p2kp2/pass2keepass2'
-    }
+    },
+    install_requires=[
+        'pykeepass>=3.0.3',
+    ],
 )
