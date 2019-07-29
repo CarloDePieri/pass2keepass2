@@ -2,6 +2,7 @@ import os
 from typing import List, Dict, Tuple
 
 from passpy import Store
+from passpy.gpg import read_key
 
 PassEntryCls = "PassEntry"
 
@@ -96,7 +97,13 @@ class PassEntry:
     @staticmethod
     def decrypt_entry(reader: PassReader, entry: str) -> str:
         """Decrypt the entry using pass and return it as a string."""
-        return reader.store.get_key(entry)
+        if reader.password is None or reader.password == "":
+            entry = reader.store.get_key(entry)
+        else:
+            # implement my own get_key and pass a custom gpg pass
+            gpg_opts = reader.store.gpg_opts + ["--pinentry-mode=loopback", f"--passphrase={reader.password}"]
+            entry = read_key(reader.path + f"/{entry}.gpg", reader.store.gpg_bin, gpg_opts)
+        return entry
 
     @staticmethod
     def is_valid_line(entry_line: str) -> bool:
