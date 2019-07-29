@@ -10,19 +10,26 @@ class PassReader:
 
     entries: List[PassEntryCls]
 
-    def __init__(self, path: str = None):
+    def __init__(self, path: str = None, password: str = None):
         """Constructor for PassReader
 
         :param path: optional password-store location.
             Default is '~/.password-store'.
         """
-        self.entries = []
+        cmd = ["pass"]
+        if password is not None:
+            cmd = ["PASSWORD_STORE_GPG_OPTS='--pinentry-mode loopback "
+                   "--batch --passphrase {}'".format(password)] + cmd
+            self.password = password
         if path is not None:
             self.path = os.path.abspath(os.path.expanduser(path))
-            self.pass_cmd = ["env", "PASSWORD_STORE_DIR={}".format(self.path), "pass"]
+            cmd = ["PASSWORD_STORE_DIR={}".format(self.path)] + cmd
         else:
             self.path = os.path.expanduser("~/.password-store")
-            self.pass_cmd = ["pass"]
+        if path is not None or password is not None:
+            cmd = ["env"] + cmd
+        self.pass_cmd = cmd
+        self.entries = []
 
     def get_pass_entries(self) -> List[str]:
         """Return the list of entries in the pass db."""

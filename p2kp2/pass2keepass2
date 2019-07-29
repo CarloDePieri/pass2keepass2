@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     # Read the pass db
     print("\n... Loading ...\n")
-    reader = PassReader(args.input)
+    reader = PassReader(path=args.input)
     reader.parse_db()
     print("Password-store decrypted! {} entries are ready to be converted.".format(len(reader.entries)))
 

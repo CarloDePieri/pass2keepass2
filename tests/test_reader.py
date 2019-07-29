@@ -18,8 +18,28 @@ class TestPassReaderInit:
         """Pass reader init should support a custom password-store path."""
         custom_path = "~/some-other-folder"
         pr = PassReader(path=custom_path)
-        assert pr.pass_cmd == ["env", "PASSWORD_STORE_DIR={}".format(os.path.expanduser(custom_path)), "pass"]
+        assert "env" in pr.pass_cmd
+        assert "PASSWORD_STORE_DIR={}".format(os.path.expanduser(custom_path)) in pr.pass_cmd
         assert pr.path == os.path.expanduser(custom_path)
+
+    def test_should_be_able_to_set_the_password(self):
+        """Pass reader init should be able to set the password."""
+        password = "somepass"
+        pr = PassReader(password=password)
+        assert pr.password == password
+        assert "env" in pr.pass_cmd
+        assert "PASSWORD_STORE_GPG_OPTS='--pinentry-mode loopback "
+        "--batch --passphrase {}'".format(password)
+
+    def test_should_be_able_to_set_a_password_and_a_custom_path_together(self):
+        """Pass reader init should be able to set a password and a custom_path together."""
+        password = "somepass"
+        custom_path = "~/some-other-folder"
+        pr = PassReader(path=custom_path, password=password)
+        assert "env" in pr.pass_cmd
+        assert "PASSWORD_STORE_DIR={}".format(os.path.expanduser(custom_path)) in pr.pass_cmd
+        assert "PASSWORD_STORE_GPG_OPTS='--pinentry-mode loopback "
+        assert len(pr.pass_cmd) == 4
 
 
 class TestPassReader:
