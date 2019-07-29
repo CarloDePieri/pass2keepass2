@@ -2,6 +2,8 @@ import os
 import subprocess
 from typing import List, Dict, Tuple
 
+from passpy import Store
+
 PassEntryCls = "PassEntry"
 
 
@@ -9,6 +11,7 @@ class PassReader:
     """Read a pass db and construct an in-memory version of it."""
 
     entries: List[PassEntryCls]
+    store: Store
 
     def __init__(self, path: str = None):
         """Constructor for PassReader
@@ -24,11 +27,23 @@ class PassReader:
             self.path = os.path.expanduser("~/.password-store")
             self.pass_cmd = ["pass"]
 
+        self.store = Store(store_dir=self.path)
+
     def get_pass_entries(self) -> List[str]:
-        """Return the list of entries in the pass db."""
-        entries = [os.path.join(dirpath, fn)[len(self.path):-4]
-                for dirpath, dirnames, files in os.walk(self.path)
-                for fn in files if fn.endswith('.gpg')]
+        """Returns all store entries."""
+        return self._get_entries_at_path()
+
+    def _get_entries_at_path(self, path: str = "/") -> List[str]:
+        """Recursive scan of a store path.
+
+        :param path: the path to scan, default at root
+        :return: a list of entries name
+        """
+        folders, entries = self.store.list_dir(self.path + path)
+        if len(folders) > 0:
+            for folder in folders:
+                for entry in self._get_entries_at_path("/{}".format(folder)):
+                    entries.append(entry)
         return entries
 
     def parse_pass_entry(self, entry: str) -> PassEntryCls:
@@ -79,7 +94,6 @@ class PassEntry:
         """Return the entry groups."""
         groups = entry.split("/")
         groups.pop()
-        groups.pop(0)
         return groups
 
     @staticmethod

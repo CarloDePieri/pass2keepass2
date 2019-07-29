@@ -35,14 +35,14 @@ class TestPassReader:
     def test_get_pass_entries_should_return_the_list_of_pass_db_entries(self):
         """Pass reader get pass entries should return the list of pass db entries."""
         entries = self.pr.get_pass_entries()
-        assert "/test1" in entries
-        assert "/web/test2" in entries
-        assert "/docs/test3" in entries
-        assert "/web/emails/test4" in entries
+        assert "test1" in entries
+        assert "web/test2" in entries
+        assert "docs/test3" in entries
+        assert "web/emails/test4" in entries
 
     def test_parse_pass_entry_should_return_a_pass_entry_object(self):
         """Pass reader parse pass entry should return a PassEntry object."""
-        entry = self.pr.parse_pass_entry("/test1")
+        entry = self.pr.parse_pass_entry("test1")
         assert type(entry) is PassEntry
         assert entry.title == "test1"
 
@@ -70,19 +70,19 @@ class TestPassEntry:
 
     def test_should_correctly_parse_the_group(self):
         """Pass entry should correctly parse the group."""
-        assert PassEntry(self.pr, "/test1").groups == []
-        assert PassEntry(self.pr, "/docs/test3").groups == ["docs"]
-        assert PassEntry(self.pr, "/web/emails/test4").groups == ["web", "emails"]
+        assert PassEntry(self.pr, "test1").groups == []
+        assert PassEntry(self.pr, "docs/test3").groups == ["docs"]
+        assert PassEntry(self.pr, "web/emails/test4").groups == ["web", "emails"]
 
     def test_should_correctly_parse_the_entry_name(self):
         """Pass entry should correctly parse the entry name."""
-        assert PassEntry(self.pr, "/test1").title == "test1"
-        assert PassEntry(self.pr, "/docs/test3").title == "test3"
-        assert PassEntry(self.pr, "/web/emails/test4").title == "test4"
+        assert PassEntry(self.pr, "test1").title == "test1"
+        assert PassEntry(self.pr, "docs/test3").title == "test3"
+        assert PassEntry(self.pr, "web/emails/test4").title == "test4"
 
     def test_should_be_able_to_decrypt_an_entry(self):
         """Pass entry should be able to decrypt an entry."""
-        decrypted_entry = PassEntry.decrypt_entry(self.pr, "/test1")
+        decrypted_entry = PassEntry.decrypt_entry(self.pr, "test1")
         entry = 'somepassword\n---\nurl: someurl.com\nuser: myusername\nnotes: some notes something ' \
               'interesting\ncell_number: 00000000\n'
         assert decrypted_entry == entry
@@ -98,7 +98,7 @@ class TestPassEntry:
 
     def test_should_correctly_parse_all_relevant_data(self):
         """Pass entry should correctly parse all relevant data."""
-        entry = PassEntry(self.pr, "/test1")
+        entry = PassEntry(self.pr, "test1")
         assert entry.password == "somepassword"
         assert entry.url == "someurl.com"
         assert entry.user == "myusername"

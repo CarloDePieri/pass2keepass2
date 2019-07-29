@@ -12,6 +12,7 @@ invoke = "*"
 
 [packages]
 pykeepass = "*"
+passpy = "*"
 
 [requires]
 python_version = "3.7"

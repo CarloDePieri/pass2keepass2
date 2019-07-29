@@ -10,5 +10,6 @@ setup(
     },
     install_requires=[
         'pykeepass>=3.0.3',
+        'passpy>=1.0rc2',
     ],
 )
