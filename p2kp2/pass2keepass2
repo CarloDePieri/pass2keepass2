@@ -7,12 +7,9 @@ from getpass import getpass
 
 from p2kp2 import PassReader, P2KP2
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input', default=None)
-    parser.add_argument('-o', '--output', default=None)
-    args = parser.parse_args()
 
+def exec_normal_mode(args):
+    """Interactive script."""
     # Intro message and warnings
     intro = "Welcome! pass2keepass2 will convert your pass database into a keepass2 one.\n\n" \
             "> WARNING < This script DOES NOT try to be memory secure: your password will NOT be " \
@@ -55,3 +52,32 @@ if __name__ == "__main__":
         "ALL DONE! {} entries have been added to the new keepass database!\nHave a nice day!"
         .format(len(p2kp2.db.entries))
     )
+
+
+def exec_quick_mode(args):
+    """More automated script"""
+    print("Insert the password that will be used for decrypting the pass "
+          "store and encrypting the new keepass db:")
+    password = getpass("-> ")
+    reader = PassReader(path=args.input, password=password)
+    print("Reading password-store...", end=" ", flush=True)
+    reader.parse_db()
+    print("DONE")
+    print("Writing keepass database...", end=" ", flush=True)
+    p2kp2 = P2KP2(password=password, destination=args.output)
+    p2kp2.populate_db(reader)
+    print("ALL DONE! {} entries converted! Bye!".format(len(p2kp2.db.entries)))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input', default=None)
+    parser.add_argument('-o', '--output', default=None)
+    parser.add_argument('-q', '--quick', action='store_true')
+    parsed_args = parser.parse_args()
+
+    if parsed_args.quick:
+        exec_quick_mode(parsed_args)
+    else:
+        exec_normal_mode(parsed_args)
+
