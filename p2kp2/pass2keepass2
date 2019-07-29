@@ -3,6 +3,7 @@
 # TODO license
 import argparse
 import os
+import signal
 import sys
 from getpass import getpass
 from math import floor
@@ -154,6 +155,12 @@ def exec_quick_mode(args):
 
 
 if __name__ == "__main__":
+    # Register for sigint for clean exit
+    def signal_handler(sig, frame):
+        print('\n\nAlright, bye!')
+        sys.exit(0)
+    signal.signal(signal.SIGINT, signal_handler)
+    # Parse commandline
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--input', default=None)
     parser.add_argument('-o', '--output', default=None)
