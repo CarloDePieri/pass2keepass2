@@ -3,9 +3,29 @@
 # TODO license
 import argparse
 import os
+import sys
 from getpass import getpass
+from math import floor
 
 from p2kp2 import PassReader, P2KP2, DbAlreadyExistsException
+
+
+def print_reader_progress(reader):
+    nentries = len(reader.get_pass_entries())
+
+    def print_progress(progress):
+        percent = floor(100 * progress / nentries)
+        sys.stdout.write(f" > Reading password-store... {percent}%\r")
+        sys.stdout.flush()
+    reader.event_stream.subscribe(print_progress)
+
+
+def print_writer_progress(writer, nentries):
+    def print_progress(progress):
+        percent = floor(100 * progress / nentries)
+        sys.stdout.write(f" > Writing keepass database... {percent}%\r")
+        sys.stdout.flush()
+    writer.event_stream.subscribe(print_progress)
 
 
 def exec_normal_mode(args):
@@ -27,10 +47,22 @@ def exec_normal_mode(args):
         exit(1)
 
     # Read the pass db
-    print("\n... Loading ...\n")
-    reader = PassReader(path=args.input)
-    reader.parse_db()
-    print("Password-store decrypted! {} entries are ready to be converted.".format(len(reader.entries)))
+    print("\r")
+    try:
+        reader = PassReader(path=args.input)
+    except Exception:
+        print(">> ERROR: error while reading the password-store.")
+        exit(1)
+
+    # Parse the entries
+    try:
+        print_reader_progress(reader)
+        reader.parse_db()
+        print("\n\nPassword-store decrypted! {} entries are ready to be converted.".format(len(reader.entries)))
+    except Exception:
+        print("")
+        print("\n>> ERROR: error while parsing the password-store entries.")
+        exit(1)
 
     # Choose a password for keepass
     print("Now choose a strong password for your new keepass database!\n")
@@ -44,19 +76,33 @@ def exec_normal_mode(args):
             print("\n >>> Entered passwords do not match, try again.\n")
 
     # Write the keepass db
-    print("Alright! It's finally time to write the keepass db. Hold tight, this might take a while!")
-    print("\n... Loading ...\n")
+    print("\nAlright! It's finally time to write the keepass db. Hold tight, this might take a while!")
     try:
+        print("")
+        sys.stdout.write(f" > Creating the new keepass database... 0%\r")
+        sys.stdout.flush()
         p2kp2 = P2KP2(password=password, destination=args.output, overwrite=args.force_overwrite)
+        sys.stdout.write(f" > Creating the new keepass database... 100%\r")
+        sys.stdout.flush()
     except DbAlreadyExistsException:
+        print("")
         print(">> ERROR: keepass database file already exists! "
               "Use -f if you want to force overwriting.")
         exit(1)
-    p2kp2.populate_db(reader)
-    print(
-        "ALL DONE! {} entries have been added to the new keepass database!\nHave a nice day!"
-        .format(len(p2kp2.db.entries))
-    )
+
+    try:
+        print("")
+        print_writer_progress(p2kp2, len(reader.entries))
+        p2kp2.populate_db(reader)
+        print("")
+        print(
+            "\nALL DONE! {} entries have been added to the new keepass database!\nHave a nice day!"
+            .format(len(p2kp2.db.entries))
+        )
+    except Exception:
+        print("")
+        print("\n>> ERROR: error while adding entries to the new db.")
+        exit(1)
 
 
 def exec_quick_mode(args):
@@ -64,21 +110,47 @@ def exec_quick_mode(args):
     print("Insert the password that will be used for decrypting the pass "
           "store and encrypting the new keepass db:")
     password = getpass("-> ")
-    reader = PassReader(path=args.input, password=password)
-    print("Reading password-store...", end=" ", flush=True)
-    reader.parse_db()
-    print("DONE")
-    print("Writing keepass database...", end=" ", flush=True)
     try:
+        reader = PassReader(path=args.input, password=password)
+    except Exception:
+        print(">> ERROR: error while reading the password-store.")
+        exit(1)
+
+    try:
+        print_reader_progress(reader)
+        reader.parse_db()
+    except Exception:
+        print("")
+        print("\n>> ERROR: error while parsing the password-store entries.")
+        exit(1)
+
+    try:
+        print("")
+        sys.stdout.write(f" > Creating the new keepass database... 0%\r")
+        sys.stdout.flush()
         p2kp2 = P2KP2(password=password, destination=args.output, overwrite=args.force_overwrite)
+        sys.stdout.write(f" > Creating the new keepass database... 100%\r")
+        sys.stdout.flush()
     except DbAlreadyExistsException:
-        print("ERR!")
+        print("")
         print("\n>> ERROR: keepass database file already exists! "
               "Use -f if you want to force overwriting.")
         exit(1)
+    except Exception:
+        print("")
+        print("\n>> ERROR: error while writing the new db.")
+        exit(1)
 
-    p2kp2.populate_db(reader)
-    print("ALL DONE! {} entries converted! Bye!".format(len(p2kp2.db.entries)))
+    try:
+        print("")
+        print_writer_progress(p2kp2, len(reader.entries))
+        p2kp2.populate_db(reader)
+        print("")
+        print("ALL DONE! {} entries converted! Bye!".format(len(p2kp2.db.entries)))
+    except Exception:
+        print("")
+        print("\n>> ERROR: error while adding entries to the new db.")
+        exit(1)
 
 
 if __name__ == "__main__":

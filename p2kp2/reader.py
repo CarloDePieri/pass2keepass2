@@ -3,6 +3,7 @@ from typing import List, Dict, Tuple
 
 from passpy import Store
 from passpy.gpg import read_key
+from rx.subject import Subject
 
 PassEntryCls = "PassEntry"
 
@@ -26,6 +27,7 @@ class PassReader:
         self.store = Store(store_dir=self.path)
         self.entries = []
         self.password = password
+        self.event_stream = Subject()
 
     def get_pass_entries(self) -> List[str]:
         """Returns all store entries."""
@@ -50,8 +52,11 @@ class PassReader:
 
     def parse_db(self):
         """Populate the entries list with all the data from the pass db."""
+        i = 0
         for entry in self.get_pass_entries():
             self.entries.append(self.parse_pass_entry(entry))
+            i = i + 1
+            self.event_stream.on_next(i)
 
 
 class PassEntry:

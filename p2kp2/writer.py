@@ -4,6 +4,7 @@ from shutil import copyfile
 
 from pykeepass import PyKeePass
 from pykeepass.entry import Entry
+from rx.subject import Subject
 
 from p2kp2 import PassReader, PassEntry
 
@@ -35,11 +36,15 @@ class P2KP2:
         self.db = PyKeePass(destination)
         self.db.password = password
         self.db.save()
+        self.event_stream = Subject()
 
     def populate_db(self, pass_reader: PassReader):
         """Populate the keepass db with data from the PassReader."""
+        i = 0
         for pass_entry in pass_reader.entries:
             self.add_entry(pass_entry)
+            i = i + 1
+            self.event_stream.on_next(i)
         self.db.save()
 
     def add_entry(self, pass_entry: PassEntry) -> Entry:
