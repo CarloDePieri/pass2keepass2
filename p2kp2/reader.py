@@ -12,7 +12,7 @@ class PassReader:
     entries: List[PassEntryCls]
     store: Store
 
-    def __init__(self, path: str = None):
+    def __init__(self, path: str = None, password: str = None):
         """Constructor for PassReader
 
         :param path: optional password-store location.
@@ -24,6 +24,7 @@ class PassReader:
             self.path = os.path.abspath(os.path.expanduser(path))
         self.store = Store(store_dir=self.path)
         self.entries = []
+        self.password = password
 
     def get_pass_entries(self) -> List[str]:
         """Returns all store entries."""

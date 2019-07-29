@@ -19,6 +19,12 @@ class TestPassReaderInit:
         pr = PassReader(path=custom_path)
         assert pr.path == os.path.expanduser(custom_path)
 
+    def test_should_expose_the_password(self):
+        """Pass reader init should expose the password."""
+        password = "somepass"
+        pr = PassReader(password=password)
+        assert pr.password == password
+
 
 class TestPassReader:
     """Test: PassReader..."""
