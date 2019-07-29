@@ -11,7 +11,7 @@ class TestPassReaderInit:
     def test_should_have_sane_defaults(self):
         """Pass reader init should have sane defaults."""
         pr = PassReader()
-        assert pr.pass_cmd == ["pass"]
+        assert pr.pass_cmd == "pass"
         assert pr.path == os.path.expanduser("~/.password-store")
 
     def test_should_support_a_custom_password_store_path(self):
@@ -39,7 +39,6 @@ class TestPassReaderInit:
         assert "env" in pr.pass_cmd
         assert "PASSWORD_STORE_DIR={}".format(os.path.expanduser(custom_path)) in pr.pass_cmd
         assert "PASSWORD_STORE_GPG_OPTS='--pinentry-mode loopback "
-        assert len(pr.pass_cmd) == 4
 
 
 class TestPassReader:

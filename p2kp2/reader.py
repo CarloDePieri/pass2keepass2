@@ -16,18 +16,18 @@ class PassReader:
         :param path: optional password-store location.
             Default is '~/.password-store'.
         """
-        cmd = ["pass"]
+        cmd = "pass"
         if password is not None:
-            cmd = ["PASSWORD_STORE_GPG_OPTS='--pinentry-mode loopback "
-                   "--batch --passphrase {}'".format(password)] + cmd
+            cmd = 'PASSWORD_STORE_GPG_OPTS="--pinentry-mode=loopback --batch ' \
+                  '--passphrase={}" '.format(password) + cmd
             self.password = password
         if path is not None:
             self.path = os.path.abspath(os.path.expanduser(path))
-            cmd = ["PASSWORD_STORE_DIR={}".format(self.path)] + cmd
+            cmd = "PASSWORD_STORE_DIR={} ".format(self.path) + cmd
         else:
             self.path = os.path.expanduser("~/.password-store")
         if path is not None or password is not None:
-            cmd = ["env"] + cmd
+            cmd = "env " + cmd
         self.pass_cmd = cmd
         self.entries = []
 
@@ -92,7 +92,8 @@ class PassEntry:
     @staticmethod
     def decrypt_entry(reader: PassReader, entry: str) -> str:
         """Decrypt the entry using pass and return it as a string."""
-        return subprocess.check_output(reader.pass_cmd + ["show", entry]).decode("UTF-8")
+        cmd = subprocess.run(["bash", "-c", reader.pass_cmd + " show {}".format(entry)], capture_output=True)
+        return cmd.stdout.decode()
 
     @staticmethod
     def is_valid_line(entry_line: str) -> bool:
