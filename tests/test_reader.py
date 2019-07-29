@@ -91,13 +91,11 @@ class TestPassEntry:
                 'interesting\ncell_number: 00000000\n'
         assert decrypted_entry == entry
 
-    @pytest.mark.runthis
     def test_should_be_able_to_decrypt_an_entry_with_a_given_password(self):
         """Pass entry should be able to decrypt an entry with a given password."""
-        pr = PassReader(path="tests/password-store", password="")
+        pr = PassReader(path="tests/password-store-with-pass", password="pass2keepass2")
         decrypted_entry = PassEntry.decrypt_entry(pr, "test1")
-        entry = 'somepassword\n---\nurl: someurl.com\nuser: myusername\nnotes: some notes something ' \
-                'interesting\ncell_number: 00000000\n'
+        entry = 'F_Yq^5vgeyMCgYf-tW\\!T7Uj|\n---\nurl: someurl.com\n'
         assert decrypted_entry == entry
 
     def test_should_be_able_to_recognize_a_valid_entry_line(self):
