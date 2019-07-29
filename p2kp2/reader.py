@@ -1,5 +1,4 @@
 import os
-import subprocess
 from typing import List, Dict, Tuple
 
 from passpy import Store
@@ -19,15 +18,12 @@ class PassReader:
         :param path: optional password-store location.
             Default is '~/.password-store'.
         """
-        self.entries = []
-        if path is not None:
-            self.path = os.path.abspath(os.path.expanduser(path))
-            self.pass_cmd = ["env", "PASSWORD_STORE_DIR={}".format(self.path), "pass"]
-        else:
+        if path is None:
             self.path = os.path.expanduser("~/.password-store")
-            self.pass_cmd = ["pass"]
-
+        else:
+            self.path = os.path.abspath(os.path.expanduser(path))
         self.store = Store(store_dir=self.path)
+        self.entries = []
 
     def get_pass_entries(self) -> List[str]:
         """Returns all store entries."""
@@ -99,7 +95,7 @@ class PassEntry:
     @staticmethod
     def decrypt_entry(reader: PassReader, entry: str) -> str:
         """Decrypt the entry using pass and return it as a string."""
-        return subprocess.check_output(reader.pass_cmd + ["show", entry]).decode("UTF-8")
+        return reader.store.get_key(entry)
 
     @staticmethod
     def is_valid_line(entry_line: str) -> bool:

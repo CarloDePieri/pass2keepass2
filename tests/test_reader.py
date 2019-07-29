@@ -11,14 +11,12 @@ class TestPassReaderInit:
     def test_should_have_sane_defaults(self):
         """Pass reader init should have sane defaults."""
         pr = PassReader()
-        assert pr.pass_cmd == ["pass"]
         assert pr.path == os.path.expanduser("~/.password-store")
 
     def test_should_support_a_custom_password_store_path(self):
         """Pass reader init should support a custom password-store path."""
         custom_path = "~/some-other-folder"
         pr = PassReader(path=custom_path)
-        assert pr.pass_cmd == ["env", "PASSWORD_STORE_DIR={}".format(os.path.expanduser(custom_path)), "pass"]
         assert pr.path == os.path.expanduser(custom_path)
 
 
