@@ -17,7 +17,7 @@ if __name__ == "__main__":
     intro = "Welcome! pass2keepass2 will convert your pass database into a keepass2 one.\n\n" \
             "> WARNING < This script DOES NOT try to be memory secure: your password will NOT be " \
             "encrypted while in memory, so you probably want to execute this on a trusted hardware.\n\n" \
-            "The script will now read your input password-store, so you will probably be asked to" \
+            "The script will now read your input password-store, so you will probably be asked to " \
             "unlock it.\nKeep in mind this may take a while, depending on the number of entries.\n\n" \
             "Input password-store: {}\n" \
             "Output keepass2 database: {}\n" \
