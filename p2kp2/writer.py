@@ -19,15 +19,16 @@ class P2KP2:
 
     db: PyKeePass
 
-    def __init__(self, password: str, destination: str = None):
+    def __init__(self, password: str, destination: str = None, overwrite: bool = False):
         """Constructor for P2KP2
 
         :param password: the password for the new Keepass db
         :param destination: the final db path
+        :param overwrite: force writing over existing database
         """
         if destination is None:
             destination = "pass.kdbx"
-        if not os.path.exists(destination):
+        if not os.path.exists(destination) or overwrite:
             copyfile(empty_db_path, destination)
         else:
             raise DbAlreadyExistsException()

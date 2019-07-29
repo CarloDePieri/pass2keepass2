@@ -5,7 +5,7 @@ import argparse
 import os
 from getpass import getpass
 
-from p2kp2 import PassReader, P2KP2
+from p2kp2 import PassReader, P2KP2, DbAlreadyExistsException
 
 
 def exec_normal_mode(args):
@@ -46,7 +46,12 @@ def exec_normal_mode(args):
     # Write the keepass db
     print("Alright! It's finally time to write the keepass db. Hold tight, this might take a while!")
     print("\n... Loading ...\n")
-    p2kp2 = P2KP2(password=password, destination=args.output)
+    try:
+        p2kp2 = P2KP2(password=password, destination=args.output, overwrite=args.force_overwrite)
+    except DbAlreadyExistsException:
+        print(">> ERROR: keepass database file already exists! "
+              "Use -f if you want to force overwriting.")
+        exit(1)
     p2kp2.populate_db(reader)
     print(
         "ALL DONE! {} entries have been added to the new keepass database!\nHave a nice day!"
@@ -64,7 +69,14 @@ def exec_quick_mode(args):
     reader.parse_db()
     print("DONE")
     print("Writing keepass database...", end=" ", flush=True)
-    p2kp2 = P2KP2(password=password, destination=args.output)
+    try:
+        p2kp2 = P2KP2(password=password, destination=args.output, overwrite=args.force_overwrite)
+    except DbAlreadyExistsException:
+        print("ERR!")
+        print("\n>> ERROR: keepass database file already exists! "
+              "Use -f if you want to force overwriting.")
+        exit(1)
+
     p2kp2.populate_db(reader)
     print("ALL DONE! {} entries converted! Bye!".format(len(p2kp2.db.entries)))
 
@@ -74,6 +86,7 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--input', default=None)
     parser.add_argument('-o', '--output', default=None)
     parser.add_argument('-q', '--quick', action='store_true')
+    parser.add_argument('-f', '--force-overwrite', action='store_true')
     parsed_args = parser.parse_args()
 
     if parsed_args.quick:

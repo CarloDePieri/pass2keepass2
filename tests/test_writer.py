@@ -8,12 +8,12 @@ from pykeepass.group import Group
 from p2kp2 import P2KP2, DbAlreadyExistsException, PassReader, PassEntry, empty_db_path
 
 test_pass = "somesecurepassword"
-test_db = "tests/test-db.kdbx"
+test_db_file = "tests/test-db.kdbx"
 
 
 def delete_test_db():
-    if os.path.exists(test_db):
-        os.remove(test_db)
+    if os.path.exists(test_db_file):
+        os.remove(test_db_file)
 
 
 @pytest.fixture
@@ -63,19 +63,26 @@ class TestP2kp2Init:
 
     def test_should_allow_to_specify_a_custom_path_for_the_new_db_file(self):
         """P2kp2 init should allow to specify a custom path for the new db file."""
-        P2KP2(password=test_pass, destination=test_db)
+        P2KP2(password=test_pass, destination=test_db_file)
 
     def test_should_raise_an_error_if_the_db_already_exists(self):
         """P2kp2 init should raise an error if the db already exists."""
-        open(test_db, "a").close()
+        open(test_db_file, "a").close()
         with pytest.raises(DbAlreadyExistsException):
-            P2KP2(password=test_pass, destination=test_db)
-            os.remove("tests/test-db.kdbx")
+            P2KP2(password=test_pass, destination=test_db_file)
+            os.remove(test_db_file)
 
     def test_should_set_the_given_password(self):
         """P2kp2 should set the given password."""
-        P2KP2(password=test_pass, destination=test_db)
-        PyKeePass(test_db, password=test_pass)  # this will fail if the pass is wrong
+        P2KP2(password=test_pass, destination=test_db_file)
+        PyKeePass(test_db_file, password=test_pass)  # this will fail if the pass is wrong
+
+    def test_should_overwrite_an_already_present_db_if_instructed_to_do_so(self):
+        """P2kp2 init should overwrite an already present db if instructed to do so."""
+        open(test_db_file, "a").close()
+        P2KP2(password=test_pass, destination=test_db_file, overwrite=True)
+        assert os.stat(test_db_file).st_size > 0
+        os.remove(test_db_file)
 
 
 class TestP2Kp2AddEntry:
@@ -94,7 +101,7 @@ class TestP2Kp2AddEntry:
         reader = PassReader(path="tests/password-store")
         reader.parse_db()
         request.cls.reader = reader
-        request.cls.p2kp2 = P2KP2(password=test_pass, destination=test_db)
+        request.cls.p2kp2 = P2KP2(password=test_pass, destination=test_db_file)
         request.cls.pass_entry0 = list(filter(lambda x: x.title == "test1", self.reader.entries))[0]
         request.cls.pass_entry1 = list(filter(lambda x: x.title == "test4", self.reader.entries))[0]
         request.cls.entry0 = request.cls.p2kp2.add_entry(request.cls.pass_entry0)
@@ -168,10 +175,10 @@ class TestP2Kp2:
         reader.parse_db()
         request.cls.pr = reader
         # populate the new db
-        p2kp2 = P2KP2(password=test_pass, destination=test_db)
+        p2kp2 = P2KP2(password=test_pass, destination=test_db_file)
         p2kp2.populate_db(reader)
         # prepare it to be read
-        request.cls.db = PyKeePass(test_db, password=test_pass)
+        request.cls.db = PyKeePass(test_db_file, password=test_pass)
 
     def test_should_actually_populate_the_db_with_populate_db(self):
         """P 2 kp 2 should actually populate the db with populate db."""
