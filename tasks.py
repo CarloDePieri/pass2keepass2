@@ -2,6 +2,7 @@ from invoke import task
 
 
 TEST_FOLDER = "tests"
+PROJECT_FOLDER = "p2kp2"
 
 
 @task
@@ -29,3 +30,14 @@ def test(c):
 @task
 def test_spec(c):
     c.run("pipenv run pytest --spec -p no:sugar {}".format(TEST_FOLDER), pty=True)
+
+
+@task
+def test_this(c):
+    c.run("pipenv run pytest --spec -s -p no:sugar -m 'runthis' {}".format(TEST_FOLDER), pty=True)
+
+
+@task
+def test_coverage(c):
+    c.run("pipenv run pytest --cov='{}' -s {}".format(PROJECT_FOLDER, TEST_FOLDER), pty=True)
+

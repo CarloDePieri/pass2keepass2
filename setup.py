@@ -8,9 +8,11 @@ setup(
     description='A python script to convert a zx2c4 pass database into a keepass 2 one.',
     packages=['p2kp2'],
     include_package_data=True,
-    scripts={
-        'p2kp2/pass2keepass2'
-    },
+    entry_points={
+        'console_scripts': [
+            'pass2keepass2 = p2kp2.pass2keepass2:main_func'
+            ]
+        },
     install_requires=[
         'passpy>=1.0rc2',
         'pykeepass>=3.0.3',
@@ -21,6 +23,8 @@ setup(
             'pytest>=4.0.0',
             'pytest-spec>=1.1.0',
             'pytest-sugar>=0.9.2',
+            'pytest-cov>=2.7.1',
+            'pytest-mock>=1.10.4',
             'invoke>=1.2.0'
         ]
     }

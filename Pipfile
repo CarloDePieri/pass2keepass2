@@ -8,6 +8,8 @@ p2kp2 = {editable = true,path = "."}
 pytest = "*"
 pytest-sugar = "*"
 pytest-spec = "*"
+pytest-cov = "*"
+pytest-mock = "*"
 invoke = "*"
 
 [packages]

@@ -153,7 +153,7 @@ def exec_quick_mode(args):
         exit(1)
 
 
-if __name__ == "__main__":
+def main_func():
     # Register for sigint for clean exit
     def signal_handler(sig, frame):
         print('\n\nAlright, bye!')
@@ -172,3 +172,6 @@ if __name__ == "__main__":
     else:
         exec_normal_mode(parsed_args)
 
+
+if __name__ == "__main__":
+    main_func()
