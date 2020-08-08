@@ -40,8 +40,8 @@ $ pip install https://github.com/CarloDePieri/pass2keepass2/archive/master.zip
 
 This is the preferred way if you need to modify the script. Clone the repository:
 ```
-$ git clone https://github.com/CarloDePieri/YTPodcast.git
-$ cd YTPodcast
+$ git clone https://github.com/CarloDePieri/pass2keepass2.git
+$ cd pass2keepass2
 ```
 
 Prepare the virtual environment. Pipenv can do that for you with
