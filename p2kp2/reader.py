@@ -139,7 +139,7 @@ class PassEntry:
         for key, value in data:
             if key == "url":
                 self.url = value
-            elif key == "user":
+            elif key == "user" or key == "login":
                 self.user = value
             elif key == "notes":
                 self.notes = value
