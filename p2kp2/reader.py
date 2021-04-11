@@ -135,5 +135,7 @@ class PassEntry:
                 self.user = value
             elif key == "notes":
                 self.notes = value
+            elif key == "otpauth":
+                self.custom_properties.update({"otp": f"otpauth:{value}"})
             else:
                 self.custom_properties.update({key: value})
