@@ -4,10 +4,12 @@ import argparse
 import os
 import signal
 import sys
+import importlib.util
 from getpass import getpass
 from math import floor
+from typing import Callable
 
-from p2kp2 import PassReader, P2KP2, DbAlreadyExistsException
+from p2kp2 import PassReader, P2KP2, DbAlreadyExistsException, CustomMapperExecException
 
 
 def print_reader_progress(reader):
@@ -28,8 +30,33 @@ def print_writer_progress(writer, nentries):
     writer.event_stream.subscribe(print_progress)
 
 
+class CustomMapperImportException(Exception):
+    """Exception raised when encountering an error when importing an user provided mapper function."""
+
+
+def import_custom_mapper(path: str) -> Callable:
+    try:
+        # Create a spec from the provided file
+        spec = importlib.util.spec_from_file_location("p2kp2.custom", path)
+        # Create a module from the spec
+        custom = importlib.util.module_from_spec(spec)
+        # Import the custom module
+        spec.loader.exec_module(custom)
+        # Return the mapper function
+        return custom.custom_mapper
+    except:
+        raise CustomMapperImportException()
+
+
 def exec_normal_mode(args):
     """Interactive script."""
+
+    mapper_path = None
+    mapper_line = ""
+    if args.custom is not None:
+        mapper_path = os.path.abspath(args.custom)
+        mapper_line = f"Custom mapper function file: {mapper_path}\n"
+
     # Intro message and warnings
     intro = "Welcome! pass2keepass2 will convert your pass database into a keepass2 one.\n\n" \
             "> WARNING < This script DOES NOT try to be memory secure: your password will NOT be " \
@@ -38,8 +65,11 @@ def exec_normal_mode(args):
             "unlock it.\nKeep in mind this may take a while, depending on the number of entries.\n\n" \
             "Input password-store: {}\n" \
             "Output keepass2 database: {}\n" \
+            "{}" \
         .format(os.path.abspath(args.input) if args.input is not None else os.path.expanduser("~/.password-store"),
-                os.path.abspath(args.output) if args.output is not None else os.path.abspath("pass.kdbx"))
+                os.path.abspath(args.output) if args.output is not None else os.path.abspath(
+                    "pass.kdbx"),
+                mapper_line)
     print(intro)
     answer = input("Are you ready to proceed? [Y/n] ")
     if not (answer.lower() == "y" or answer.lower() == ""):
@@ -49,7 +79,13 @@ def exec_normal_mode(args):
     # Read the pass db
     print("\r")
     try:
-        reader = PassReader(path=args.input)
+        mapper = None
+        if mapper_path is not None:
+            mapper = import_custom_mapper(mapper_path)
+        reader = PassReader(path=args.input, mapper=mapper)
+    except CustomMapperImportException:
+        print(">> ERROR: error while importing the provided mapper.")
+        exit(1)
     except Exception:
         print(">> ERROR: error while reading the password-store.")
         exit(1)
@@ -59,8 +95,10 @@ def exec_normal_mode(args):
         print_reader_progress(reader)
         reader.parse_db()
         print("\n\nPassword-store decrypted! {} entries are ready to be converted.".format(len(reader.entries)))
+    except CustomMapperExecException:
+        print(">> ERROR: error while executing the provided mapper.")
+        exit(1)
     except Exception:
-        print("")
         print("\n>> ERROR: error while parsing the password-store entries.")
         exit(1)
 
@@ -111,7 +149,13 @@ def exec_quick_mode(args):
           "store and encrypting the new keepass db:")
     password = getpass("-> ")
     try:
-        reader = PassReader(path=args.input, password=password)
+        mapper = args.custom
+        if mapper is not None:
+            mapper = import_custom_mapper(os.path.abspath(args.custom))
+        reader = PassReader(path=args.input, password=password, mapper=mapper)
+    except CustomMapperImportException:
+        print(">> ERROR: error while importing the provided mapper.")
+        exit(1)
     except Exception:
         print(">> ERROR: error while reading the password-store.")
         exit(1)
@@ -119,8 +163,10 @@ def exec_quick_mode(args):
     try:
         print_reader_progress(reader)
         reader.parse_db()
+    except CustomMapperExecException:
+        print(">> ERROR: error while executing the provided mapper.")
+        exit(1)
     except Exception:
-        print("")
         print("\n>> ERROR: error while parsing the password-store entries.")
         exit(1)
 
@@ -161,6 +207,7 @@ def main_func():
     signal.signal(signal.SIGINT, signal_handler)
     # Parse commandline
     parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--custom', default=None)
     parser.add_argument('-i', '--input', default=None)
     parser.add_argument('-o', '--output', default=None)
     parser.add_argument('-q', '--quick', action='store_true')

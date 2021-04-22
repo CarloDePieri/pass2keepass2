@@ -1,5 +1,5 @@
 import os
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Callable
 
 from passpy import Store
 from passpy.gpg import read_key
@@ -14,7 +14,7 @@ class PassReader:
     entries: List[PassEntryCls]
     store: Store
 
-    def __init__(self, path: str = None, password: str = None):
+    def __init__(self, path: str = None, password: str = None, mapper: Callable = None):
         """Constructor for PassReader
 
         :param path: optional password-store location.
@@ -28,6 +28,7 @@ class PassReader:
         self.entries = []
         self.password = password
         self.event_stream = Subject()
+        self.mapper = mapper
 
     def get_pass_entries(self) -> List[str]:
         """Returns all store entries."""
@@ -46,9 +47,15 @@ class PassReader:
                     entries.append(entry)
         return entries
 
-    def parse_pass_entry(self, entry: str) -> PassEntryCls:
+    def parse_pass_entry(self, entry_name: str) -> PassEntryCls:
         """Return a parsed PassEntry."""
-        return PassEntry(reader=self, entry=entry)
+        entry = PassEntry(reader=self, entry=entry_name)
+        if self.mapper is not None:
+            try:
+                entry = self.mapper(entry)
+            except:
+                raise CustomMapperExecException()
+        return entry
 
     def parse_db(self):
         """Populate the entries list with all the data from the pass db."""
@@ -106,7 +113,8 @@ class PassEntry:
             entry = reader.store.get_key(entry)
         else:
             # implement my own get_key and pass a custom gpg pass
-            gpg_opts = reader.store.gpg_opts + ["--pinentry-mode=loopback", f"--passphrase={reader.password}"]
+            gpg_opts = reader.store.gpg_opts + \
+                ["--pinentry-mode=loopback", f"--passphrase={reader.password}"]
             entry = read_key(reader.path + f"/{entry}.gpg", reader.store.gpg_bin, gpg_opts)
         return entry
 
@@ -137,3 +145,7 @@ class PassEntry:
                 self.notes = value
             else:
                 self.custom_properties.update({key: value})
+
+
+class CustomMapperExecException(Exception):
+    """Exception raised when encountering an error when executing an user provided mapper function."""

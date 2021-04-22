@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from p2kp2 import PassReader, PassEntry
+from p2kp2 import PassReader, PassEntry, CustomMapperExecException
 
 
 class TestPassReaderInit:
@@ -24,6 +24,18 @@ class TestPassReaderInit:
         password = "somepass"
         pr = PassReader(password=password)
         assert pr.password == password
+
+    def test_should_set_a_none_custom_mapper_by_default(self):
+        """... it should set a None custom mapper by default"""
+        pr = PassReader(path="tests/password-store")
+        assert pr.mapper is None
+
+    def test_should_have_mapper_pointing_to_a_function_when_custom_is_provided(self):
+        """... it should have mapper pointing to a function when custom is provided"""
+        def custom_mapper():
+            pass
+        pr = PassReader(path="tests/password-store", mapper=custom_mapper)
+        assert pr.mapper is custom_mapper
 
 
 class TestPassReader:
@@ -60,6 +72,26 @@ class TestPassReader:
         assert "test2" in entries_name
         assert "test3" in entries_name
         assert "test4" in entries_name
+
+    def test_should_apply_the_mapper_when_provided(self):
+        """... it should apply the mapper when provided"""
+        def custom_mapper(entry: PassEntry) -> PassEntry:
+            entry.title += "_modified"
+            if 'cell_number' in entry.custom_properties:
+                entry.custom_properties["cell_number"] = "11111111"
+            return entry
+        pr = PassReader(path="tests/password-store", mapper=custom_mapper)
+        entry = pr.parse_pass_entry("test1")
+        assert entry.title == "test1_modified"
+        assert entry.custom_properties['cell_number'] == "11111111"
+
+    def test_should_raise_an_exception_if_a_provided_custom_mapper_contains_errors(self):
+        """... it should raise an exception if a provided custom mapper contains errors"""
+        def custom_broken_mapper(_):
+            raise Exception
+        pr = PassReader(path="tests/password-store", mapper=custom_broken_mapper)
+        with pytest.raises(CustomMapperExecException):
+            pr.parse_pass_entry("test1")
 
 
 class TestPassEntry:
