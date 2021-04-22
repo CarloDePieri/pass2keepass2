@@ -77,6 +77,48 @@ The script is interactive. If you need more options you can find out more by typ
 $ pass2keepass2 --help
 ```
 
+### Custom entries mapping
+
+Pass is a flexible tool and does not enforce a particular schema on the user.
+Keepass, on the other hand, is a little more opinionated. This is why your setup
+may need a little tweaking when converting.
+
+Users can provide pass2keepass2 with a custom python function that will be applied 
+to every pass entry. The function must be called `custom_mapper` and have to
+following signature:
+
+```python
+def custom_mapper(entry: PassEntry) -> PassEntry
+```
+
+Do note that explicit type annotations are not needed (they would require to import
+`PassEntry` from the `p2kp2` into the script).
+
+The function can be handed to the script like this:
+
+```
+pass2keepass2 -c my_custom_mapper.py
+```
+
+#### Example
+
+Consider the need to change an otp secret key/value pair from
+`otpauth: 'xxx'` to `otp: 'otpauth:xxx'`. This can be accomplished with the
+following custom mapper:
+
+```python
+def custom_mapper(entry):
+    # Check if the entry has the otpauth property
+    if "otpauth" in entry.custom_properties:
+        # Delete the old property from the dict and save its value
+        otp_secret = entry.custom_properties.pop("otpauth")
+        # Create the new property
+        entry.custom_properties["otp"] = f"otpauth:{otp_secret}"
+
+    # Remember to return the entry!
+    return entry
+```
+
 ## Testing
 
 Tests make use of some dummy password-stores. You will need to import the gpg keys used
