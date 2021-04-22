@@ -23,8 +23,11 @@ def clean(c):
 
 
 @task
-def test(c):
-    c.run("pipenv run pytest {}".format(TEST_FOLDER), pty=True)
+def test(c, s=False):
+    capture = ""
+    if s:
+        capture = " -s"
+    c.run("pipenv run pytest{} {}".format(capture, TEST_FOLDER), pty=True)
 
 
 @task
@@ -33,11 +36,16 @@ def test_spec(c):
 
 
 @task
-def test_this(c):
-    c.run("pipenv run pytest --spec -s -p no:sugar -m 'runthis' {}".format(TEST_FOLDER), pty=True)
+def test_this(c, s=False):
+    capture = ""
+    if s:
+        capture = " -s"
+    c.run("pipenv run pytest{} -p no:sugar -m 'runthis' {}".format(capture, TEST_FOLDER), pty=True)
 
 
 @task
-def test_coverage(c):
-    c.run("pipenv run pytest --cov='{}' -s {}".format(PROJECT_FOLDER, TEST_FOLDER), pty=True)
-
+def test_coverage(c, s=False):
+    capture = ""
+    if s:
+        capture = " -s"
+    c.run("pipenv run pytest --cov='{}'{} {}".format(PROJECT_FOLDER, capture, TEST_FOLDER), pty=True)
