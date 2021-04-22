@@ -6,34 +6,13 @@ from pykeepass.entry import Entry
 from pykeepass.group import Group
 
 from p2kp2 import P2KP2, DbAlreadyExistsException, PassReader, PassEntry, empty_db_path
-
-test_pass = "somesecurepassword"
-test_db_file = "tests/test-db.kdbx"
-
-
-def delete_test_db():
-    if os.path.exists(test_db_file):
-        os.remove(test_db_file)
-
-
-@pytest.fixture
-def reset_db_every_test():
-    """Delete the test db every test."""
-    yield
-    delete_test_db()
-
-
-@pytest.fixture(scope="class")
-def reset_db_after_all_class_test():
-    """Delete the test db after all the class test run."""
-    yield
-    delete_test_db()
+from tests.conftest import test_db_file, test_pass
 
 
 class TestInitialDb:
     """Test: initial db..."""
 
-    kb: PyKeePass
+    kp: PyKeePass
 
     @pytest.fixture(scope="class", autouse=True)
     def setup(self, request):
