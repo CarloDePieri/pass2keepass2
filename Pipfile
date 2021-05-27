@@ -11,6 +11,7 @@ pytest-spec = "*"
 pytest-cov = "*"
 pytest-mock = "*"
 invoke = "*"
+autopep8 = "*"
 
 [packages]
 pykeepass = "*"
