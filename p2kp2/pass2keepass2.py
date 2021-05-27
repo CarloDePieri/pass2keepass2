@@ -9,7 +9,7 @@ from getpass import getpass
 from math import floor
 from typing import Callable
 
-from p2kp2 import PassReader, P2KP2, DbAlreadyExistsException, CustomMapperExecException
+from p2kp2 import PassReader, P2KP2, DbAlreadyExistsException, CustomMapperExecException, __version__
 
 
 def print_reader_progress(reader):
@@ -212,12 +212,16 @@ def main_func():
     parser.add_argument('-o', '--output', default=None)
     parser.add_argument('-q', '--quick', action='store_true')
     parser.add_argument('-f', '--force-overwrite', action='store_true')
+    parser.add_argument('-v', '--version', action='store_true')
     parsed_args = parser.parse_args()
 
-    if parsed_args.quick:
-        exec_quick_mode(parsed_args)
+    if parsed_args.version:
+        print("Pass2keepass2 v{}".format(__version__))
     else:
-        exec_normal_mode(parsed_args)
+        if parsed_args.quick:
+            exec_quick_mode(parsed_args)
+        else:
+            exec_normal_mode(parsed_args)
 
 
 if __name__ == "__main__":

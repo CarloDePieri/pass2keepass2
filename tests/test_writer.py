@@ -114,16 +114,16 @@ class TestP2Kp2AddEntry:
     def test_should_correctly_set_groups(self):
         """P2kp2 add_entry should correctly set groups."""
         group0: Group = self.entry0.group
-        assert group0.path == "/"
+        assert group0.path == []
         group1: Group = self.entry1.group
-        assert group1.path == "web/emails"
+        assert group1.path == ["web", "emails"]
 
     def test_should_be_able_to_add_entries_in_already_existing_groups(self):
         """P2kp2 add_entry should be able to use existing groups."""
         ngroups = len(self.p2kp2.db.groups)
         pass_entry2 = list(filter(lambda x: x.title == "test2", self.reader.entries))[0]
         entry2 = self.p2kp2.add_entry(pass_entry2)
-        assert entry2.group.path == "web"
+        assert entry2.group.path == ["web"]
         assert ngroups == len(self.p2kp2.db.groups)
 
     def test_should_correctly_set_custom_properties(self):
@@ -162,4 +162,3 @@ class TestP2Kp2:
     def test_should_actually_populate_the_db_with_populate_db(self):
         """P 2 kp 2 should actually populate the db with populate db."""
         assert len(self.db.entries) == 4
-

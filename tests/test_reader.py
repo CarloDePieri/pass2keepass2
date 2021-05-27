@@ -1,4 +1,5 @@
 import os
+from p2kp2.reader import EntryNotFoundException
 
 import pytest
 
@@ -122,6 +123,15 @@ class TestPassEntry:
         entry = 'somepassword\n---\nurl: someurl.com\nuser: myusername\nnotes: some notes something ' \
                 'interesting\ncell_number: 00000000\n'
         assert decrypted_entry == entry
+
+    def test_should_raise_an_exception_when_trying_to_decrypt_absent_entries(self):
+        """It should raise an exception when trying to decrypt absent entries"""
+        with pytest.raises(EntryNotFoundException):
+            PassEntry.decrypt_entry(self.pr, "")
+        with pytest.raises(EntryNotFoundException):
+            PassEntry.decrypt_entry(self.pr, None)
+        with pytest.raises(FileNotFoundError):
+            PassEntry.decrypt_entry(self.pr, "not_there")
 
     def test_should_be_able_to_decrypt_an_entry_with_a_given_password(self):
         """Pass entry should be able to decrypt an entry with a given password."""
