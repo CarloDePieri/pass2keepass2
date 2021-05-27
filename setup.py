@@ -1,18 +1,24 @@
+import io
+import re
 from setuptools import setup
+
+with io.open('p2kp2/__init__.py', 'rt', encoding='utf8') as f:
+    version = re.search(r'__version__ = \'(.*?)\'', f.read()).group(1)
 
 setup(
     name='pass2keepass2',
-    version='1.0.0',
+    version=version,
     license='GPLv3',
     author='Carlo De Pieri',
     description='A python script to convert a zx2c4 pass database into a keepass 2 one.',
     packages=['p2kp2'],
+    url="https://github.com/CarloDePieri/pass2keepass2",
     include_package_data=True,
     entry_points={
         'console_scripts': [
             'pass2keepass2 = p2kp2.pass2keepass2:main_func'
-            ]
-        },
+        ]
+    },
     install_requires=[
         'passpy>=1.0rc2',
         'pykeepass>=3.0.3',
