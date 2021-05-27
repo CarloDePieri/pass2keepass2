@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 from typing import List, Dict, Tuple, Callable
 
@@ -5,13 +6,11 @@ from passpy import Store
 from passpy.gpg import read_key
 from rx.subject import Subject
 
-PassEntryCls = "PassEntry"
-
 
 class PassReader:
     """Read a pass db and construct an in-memory version of it."""
 
-    entries: List[PassEntryCls]
+    entries: List[PassEntry]
     store: Store
 
     def __init__(self, path: str = None, password: str = None, mapper: Callable = None):
@@ -47,7 +46,7 @@ class PassReader:
                     entries.append(entry)
         return entries
 
-    def parse_pass_entry(self, entry_name: str) -> PassEntryCls:
+    def parse_pass_entry(self, entry_name: str) -> PassEntry:
         """Return a parsed PassEntry."""
         entry = PassEntry(reader=self, entry=entry_name)
         if self.mapper is not None:
