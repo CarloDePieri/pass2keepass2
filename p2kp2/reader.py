@@ -110,13 +110,15 @@ class PassEntry:
     def decrypt_entry(reader: PassReader, entry: str) -> str:
         """Decrypt the entry using pass and return it as a string."""
         if reader.password is None or reader.password == "":
-            entry = reader.store.get_key(entry)
+            found_entry = reader.store.get_key(entry)
+            if found_entry is None:
+                raise EntryNotFoundException()
         else:
             # implement my own get_key and pass a custom gpg pass
             gpg_opts = reader.store.gpg_opts + \
                 ["--pinentry-mode=loopback", f"--passphrase={reader.password}"]
-            entry = read_key(reader.path + f"/{entry}.gpg", reader.store.gpg_bin, gpg_opts)
-        return entry
+            found_entry = read_key(reader.path + f"/{entry}.gpg", reader.store.gpg_bin, gpg_opts)
+        return found_entry
 
     @staticmethod
     def is_valid_line(entry_line: str) -> bool:
@@ -149,3 +151,7 @@ class PassEntry:
 
 class CustomMapperExecException(Exception):
     """Exception raised when encountering an error when executing an user provided mapper function."""
+
+
+class EntryNotFoundException(Exception):
+    """Exception raised when trying to access an entry that is not present in the chosen PassReader."""
