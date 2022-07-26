@@ -1,5 +1,7 @@
 # pass2keepass2
 
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/CarloDePieri/pass2keepass2/prod?label=CI)](https://github.com/CarloDePieri/pass2keepass2/actions/workflows/prod.yml)
+
 A python script to convert a [zx2c4 pass](https://www.passwordstore.org/) database into a [keepass 2](https://keepass.info/) one.
 
 ## Installation

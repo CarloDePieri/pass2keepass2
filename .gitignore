@@ -6,3 +6,4 @@ __pycache__/
 p2kp2/pass2keepass2.iml
 pass2keepass2.iml
 /.coverage
+/.secrets

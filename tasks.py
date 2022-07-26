@@ -49,3 +49,23 @@ def test_coverage(c, s=False):
     if s:
         capture = " -s"
     c.run("pipenv run pytest --cov='{}'{} {}".format(PROJECT_FOLDER, capture, TEST_FOLDER), pty=True)
+
+
+#
+# ACT
+#
+act_ctx = "act-ci"
+act_secrets_file = ".secrets"
+
+
+@task
+def act(c, cmd=""):
+    if cmd == "":
+        c.run("act -W .github/workflows/prod.yml", pty=True)
+    elif cmd == "shell":
+        c.run(
+            f"docker exec --env-file {act_secrets_file} -it {act_ctx} bash",
+            pty=True,
+        )
+    elif cmd == "clean":
+        c.run(f"docker rm -f {act_ctx}", pty=True)
